@@ -8,12 +8,12 @@ public class Rule {
 
     /**
      * Create a new rule.
-     * @param a how many of this rule
-     * @param b how many cards in the set/run
+     * @param count how many of this rule
+     * @param numCards how many cards in the set/run
      */
-    public Rule(int a, int b) {
-        count = a;
-        numCards = b;
+    public Rule(int count, int numCards) {
+        this.count = count;
+        this.numCards = numCards;
     }
     public int getCount() {
         return count;

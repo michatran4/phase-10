@@ -26,6 +26,16 @@ public class CardPile {
         Collections.shuffle(pile);
     }
 
+    public String peek() {
+        if (!drawDeck) {
+            if (pile.isEmpty()) {
+                throw new IllegalStateException();
+            }
+            return pile.peek().toString();
+        }
+        throw new IllegalCallerException("Only the discard pile should be peeked at.");
+    }
+
     public Card pop() {
         if (isEmpty()) {
             throw new IllegalStateException();

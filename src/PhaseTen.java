@@ -2,28 +2,27 @@ import java.util.*;
 
 import cards.Card;
 import cards.CardPile;
+import cards.DeckManager;
 import cards.PlayerDeck;
 import phases.*;
 
 public class PhaseTen {
-    private Queue<String> playerList;
     private Set<String> skipped; // names of players that are currently skipping
     private Set<String> hitting; // players that have completed the phase
     private Map<String, Integer> scoreboard;
     private PhaseCollection phases;
     private CardPile drawPile;
     private CardPile discardPile;
-    private PlayerDeck playerDeck;
-    //TODO pile manager needs to make sure piles aren't empty?
-    //TODO deck manager needs to see if decks are cleared
+    private DeckManager deckManager;
+    private PlayerManager playerManager;
+    //TODO make sure piles aren't empty, else flip
 
     public PhaseTen() {
-        playerList = new LinkedList<>();
         skipped = new HashSet<>();
         initPhaseCollection();
         initPiles();
         drawPile.shuffle();
-        initDecks();
+        initPlayers();
     }
 
     private void initPhaseCollection() {
@@ -91,16 +90,44 @@ public class PhaseTen {
         discardPile = new CardPile(false);
     }
 
-    private void initDecks() {
-        playerDeck = new PlayerDeck();
+    private void initPlayers() {
+        PlayerDeck playerDeck = new PlayerDeck();
+        // TODO instead of a player class wait for the discard pile to be added to
+
+        PlayerDeck cpuDeck1 = new PlayerDeck();
+        CPU one = new CPU("CPU 1", cpuDeck1);
+
+        PlayerDeck cpuDeck2 = new PlayerDeck();
+        CPU two = new CPU("CPU 2", cpuDeck2);
+
+        PlayerDeck cpuDeck3 = new PlayerDeck();
+        CPU three = new CPU("CPU 3", cpuDeck3);
+
+        deckManager = new DeckManager();
+        deckManager.put("Player 1", playerDeck);
+        deckManager.put("CPU 1", cpuDeck1);
+        deckManager.put("CPU 2", cpuDeck2);
+        deckManager.put("CPU 3", cpuDeck3);
+
+        playerManager = new PlayerManager();
+        playerManager.add("Player 1");
+        playerManager.add("CPU 1");
+        playerManager.add("CPU 2");
+        playerManager.add("CPU 3");
+
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < playerManager.getNumPlayers(); j++) {
+                String player = playerManager.getNextPlayer();
+                PlayerDeck playersDeck = deckManager.get(player);
+                playersDeck.addCard(drawPile.pop());
+            }
+        }
+        System.out.println(deckManager.toString());
+        discardPile.addCard(drawPile.pop());
     }
 
     public boolean newRound() { // TODO
         return true; // keep going
-    }
-
-    private boolean checkDecks() {
-        return false; // return if any deck is empty
     }
 
     public int getScore(String player) {

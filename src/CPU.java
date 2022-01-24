@@ -1,7 +1,16 @@
+import cards.PlayerDeck;
+
 public class CPU {
     private String name;
-    public CPU(String n) {
+    private int phase;
+    private PlayerDeck deck;
+    public CPU(String n, PlayerDeck playerDeck) {
         name = n;
+        phase = 1;
+        deck = playerDeck;
+    }
+    public void incrementPhase() {
+        phase++;
     }
     public String toString() {
         return name;

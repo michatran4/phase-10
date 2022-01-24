@@ -40,10 +40,6 @@ public class Card implements Comparable<Card> {
         };
     }
 
-    public int hashCode() { // funky I know
-        return color.hashCode();
-    }
-
     public boolean equals(Object obj) { // for treemap position
         if (!(obj instanceof Card)) {
             return false;

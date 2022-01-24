@@ -19,7 +19,26 @@ public class PlayerDeck {
             deck.put(c, 1);
         }
     }
+
+    public Card removeCard() { // TODO
+        //Card c = deck.get(new Card(c))
+        return null;
+    }
+
+    public boolean isEmpty() {
+        return deck.isEmpty();
+    }
+
     public String toString() {
-        return deck.toString();
+        StringBuilder output = new StringBuilder("[");
+        for (Card c: deck.keySet()) {
+            for (int i = 0; i < deck.get(c); i++) {
+                output.append(c.toString());
+                output.append(", ");
+            }
+        }
+        output = new StringBuilder(output.substring(0, output.length() - 2));
+        output.append("]");
+        return output.toString();
     }
 }

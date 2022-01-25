@@ -3,13 +3,14 @@ import javax.swing.border.Border;
 import java.awt.*;
 
 public class GUI {
+    private final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    private final int cardWidth = 120;
+    private final int cardHeight = 160;
+
+    private Icon cardBack;
     private JFrame frame;
     private JPanel boardPanel, menuPanel, topPanel, leftPanel, rightPanel, botPanel, centerPanel, centerLeftPanel, centerRightPanel;
     private JButton drawPile, discardPile;
-
-    private final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    private final Dimension boardSize = new Dimension((int)((7)*(screenSize.getWidth()/8)), (int)screenSize.getHeight());
-    private final Dimension menuSize = new Dimension((int)(screenSize.getWidth()/8), screenSize.height);
 
     //Basic setup of the frame container, panels, cards piles (buttons)
     public GUI()
@@ -28,6 +29,7 @@ public class GUI {
         boardPanel = new JPanel();
         boardPanel.setBackground(Color.BLACK);
         boardPanel.setLayout(new BorderLayout());
+        Dimension boardSize = new Dimension((int)((7)*(screenSize.getWidth()/8)), (int)screenSize.getHeight());
         boardPanel.setPreferredSize(boardSize);
 
         menuPanel = new JPanel();
@@ -77,11 +79,18 @@ public class GUI {
         centerLeftPanel = new JPanel();
         centerLeftPanel.setBackground(Color.DARK_GRAY);
         centerLeftPanel.setPreferredSize(new Dimension((int)(boardSize.getWidth()/3),(int) boardSize.getHeight()));
-        centerLeftPanel.setLayout(new FlowLayout());
+        int vgap = (int)(boardSize.getHeight()/6);
+        centerLeftPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 50, vgap));
 
-        drawPile = new JButton("Draw");
-        drawPile.setPreferredSize(new Dimension(90,120));
+        ImageIcon img = new ImageIcon("back.png");
+        cardBack = new ImageIcon(img.getImage().getScaledInstance(cardWidth, cardHeight, Image.SCALE_DEFAULT));
+        drawPile = new JButton(cardBack);
+        drawPile.setPreferredSize(new Dimension(cardWidth,cardHeight));
         centerLeftPanel.add(drawPile);
+
+        discardPile = new JButton("Discard");
+        discardPile.setPreferredSize(new Dimension(cardWidth,cardHeight));
+        centerLeftPanel.add(discardPile);
 
         //Set up completed phase sets panel
         centerRightPanel = new JPanel();

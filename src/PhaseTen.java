@@ -15,14 +15,17 @@ public class PhaseTen {
     private CardPile discardPile;
     private DeckManager deckManager;
     private PlayerManager playerManager;
+    private boolean DEBUGGING;
     //TODO make sure piles aren't empty, else flip
 
     public PhaseTen() {
+        DEBUGGING = true;
         skipped = new HashSet<>();
         initPhaseCollection();
         initPiles();
         drawPile.shuffle();
         initPlayers();
+        startGame();
     }
 
     private void initPhaseCollection() {
@@ -122,16 +125,51 @@ public class PhaseTen {
                 playersDeck.addCard(drawPile.pop());
             }
         }
-        System.out.println(deckManager.toString());
+        if (DEBUGGING) {
+            System.out.println(deckManager.toString());
+        }
         discardPile.addCard(drawPile.pop());
     }
 
-    public boolean newRound() { // TODO
-        return true; // keep going
+    private void startGame() {
+        while (true) {
+            play();
+            if (playerManager.checkPhases()) {
+                System.out.println("WINNER");
+                break;
+            }
+            // TODO?
+        }
     }
 
-    public int getScore(String player) {
-        return scoreboard.get(player);
+    /**
+     * Plays rounds until a deck is found to be empty.
+     */
+    private void play() {
+        while (!deckManager.checkDecks()) { // while none are empty for the round
+            for (int i = 0; i < playerManager.getNumPlayers(); i++) {
+                String player = playerManager.getNextPlayer();
+                // TODO if piles are bad
+                if (player.contains("CPU")) {
+                    // TODO cpu artificial moves and integrate with GUI
+                }
+                else {
+                    // TODO integrate with GUI
+                    // TODO check if it's the correct phase
+                }
+            }
+        }
+        // TODO scoring and fixing piles?
+    }
+
+    /**
+     * Updates scores when a round ends.
+     */
+    private void updateScores() {
+        boolean hasWinner = false; // temporary check where one should have added 0
+        for (String player: playerManager.getPlayers()) {
+
+        }
     }
 
     public String getScoreboard() {

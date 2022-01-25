@@ -5,12 +5,15 @@ import java.util.Map;
 
 public class DeckManager {
     private Map<String, PlayerDeck> deckMap;
+
     public DeckManager() {
         deckMap = new HashMap<>();
     }
+
     public void put(String player, PlayerDeck deck) {
         deckMap.put(player, deck);
     }
+
     public PlayerDeck get(String player) {
         return deckMap.get(player);
     }
@@ -20,12 +23,13 @@ public class DeckManager {
      */
     public boolean checkDecks() {
         for (PlayerDeck deck: deckMap.values()) {
-
+            if (deck.isEmpty()) {
+                return true;
+            }
         }
         return false;
     }
 
-    /*
     public String toString() { // not in order
         StringBuilder output = new StringBuilder();
         for (String s: deckMap.keySet()) {
@@ -35,6 +39,4 @@ public class DeckManager {
         }
         return output.toString();
     }
-
-     */
 }

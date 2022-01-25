@@ -9,9 +9,6 @@ public class CPU {
         phase = 1;
         deck = playerDeck;
     }
-    public void incrementPhase() {
-        phase++;
-    }
     public String toString() {
         return name;
     }

@@ -20,9 +20,16 @@ public class PlayerDeck {
         }
     }
 
-    public Card removeCard() { // TODO
-        //Card c = deck.get(new Card(c))
-        return null;
+    public Card removeCard(Card card) {
+        if (!deck.containsKey(card)) throw new IllegalArgumentException();
+        int count = deck.get(card);
+        if (count - 1 == 0) {
+            deck.remove(card);
+        }
+        else {
+            deck.put(card, count - 1);
+        }
+        return card;
     }
 
     public boolean isEmpty() {
@@ -41,4 +48,24 @@ public class PlayerDeck {
         output.append("]");
         return output.toString();
     }
+
+    public int getScore() {
+        int sum = 0;
+        for (Card c: deck.keySet()) {
+            int count = deck.get(c);
+            for (int i = 0; i < count; i++) {
+                if (c.getNum() <= 9) {
+                    sum += 5;
+                }
+                else if (c.getNum() <= 12) {
+                    sum += 10;
+                }
+                else {
+                    sum += 25;
+                }
+            }
+        }
+        return sum;
+    }
+
 }

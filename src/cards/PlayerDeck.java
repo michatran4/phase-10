@@ -68,4 +68,7 @@ public class PlayerDeck {
         return sum;
     }
 
+    public Map<Card, Integer> getDeck() { // should only be used for CPUDeck
+        return deck;
+    }
 }

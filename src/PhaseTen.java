@@ -1,9 +1,6 @@
 import java.util.*;
 
-import cards.Card;
-import cards.CardPile;
-import cards.DeckManager;
-import cards.PlayerDeck;
+import cards.*;
 import phases.*;
 
 public class PhaseTen {
@@ -25,7 +22,7 @@ public class PhaseTen {
         initPiles();
         drawPile.shuffle();
         initPlayers();
-        startGame();
+        //startGame();
     }
 
     private void initPhaseCollection() {
@@ -94,17 +91,10 @@ public class PhaseTen {
     }
 
     private void initPlayers() {
-        PlayerDeck playerDeck = new PlayerDeck();
-        // TODO instead of a player class wait for the discard pile to be added to
-
-        PlayerDeck cpuDeck1 = new PlayerDeck();
-        CPU one = new CPU("CPU 1", cpuDeck1);
-
-        PlayerDeck cpuDeck2 = new PlayerDeck();
-        CPU two = new CPU("CPU 2", cpuDeck2);
-
-        PlayerDeck cpuDeck3 = new PlayerDeck();
-        CPU three = new CPU("CPU 3", cpuDeck3);
+        PlayerDeck playerDeck = new PlayerDeck(); // TODO instead of a player class wait for the discard pile to be added to
+        CPUDeck cpuDeck1 = new CPUDeck();
+        CPUDeck cpuDeck2 = new CPUDeck();
+        CPUDeck cpuDeck3 = new CPUDeck();
 
         deckManager = new DeckManager();
         deckManager.put("Player 1", playerDeck);
@@ -138,7 +128,10 @@ public class PhaseTen {
                 System.out.println("WINNER");
                 break;
             }
-            // TODO?
+            updateScores();
+            if (DEBUGGING) {
+                System.out.println(getScoreboard());
+            }
         }
     }
 
@@ -168,8 +161,11 @@ public class PhaseTen {
     private void updateScores() {
         boolean hasWinner = false; // temporary check where one should have added 0
         for (String player: playerManager.getPlayers()) {
-
+            int score = deckManager.get(player).getScore();
+            if (score == 0) hasWinner = true;
+            scoreboard.put(player, scoreboard.get(player) + score);
         }
+        if (!hasWinner) throw new IllegalStateException();
     }
 
     public String getScoreboard() {

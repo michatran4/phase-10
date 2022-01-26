@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DeckManager {
-    private Map<String, PlayerDeck> deckMap;
+    private final Map<String, PlayerDeck> deckMap;
 
     public DeckManager() {
         deckMap = new HashMap<>();

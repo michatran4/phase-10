@@ -51,7 +51,7 @@ public class PhaseTen {
         seven.add(new NumberSet(2, 4));
         // phase 8
         LinkedList<Rule> eight = new LinkedList<>();
-        eight.add(new ColorRun(7));
+        eight.add(new ColorSet(7));
         // phase 9
         LinkedList<Rule> nine = new LinkedList<>();
         nine.add(new NumberSet(1, 5));

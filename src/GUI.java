@@ -1,10 +1,14 @@
 import javax.swing.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 import java.awt.*;
 
 public class GUI {
     private final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     private final Dimension boardSize = new Dimension((int)((7)*(screenSize.getWidth()/8)), (int)screenSize.getHeight());
-    private final Color bgColor = new Color(40, 40, 43);
+    private final Color bgColor = new Color(2, 48, 32);
     private final int cardWidth = 120;
     private final int cardHeight = 160;
 
@@ -14,6 +18,7 @@ public class GUI {
     private JPanel topPanel, leftPanel, rightPanel, botPanel; //player panels
     private JPanel centerPanel, centerLeftPanel, centerRightPanel; //center panel
     private JButton drawPile, discardPile;
+    private JTextPane scoreboard;
 
     //Basic setup of the frame container, panels, card piles (buttons)
     public GUI()
@@ -23,6 +28,9 @@ public class GUI {
 
         //Set up 2 parent panels to separate the physical board game and side menu for score and instructions.
         setupParentPanels();
+
+        //Setup menu
+        setupMenu();
 
         //Setup up 5 panels, 3 cpu, 1 player, 1 center panel for card piles
         setupPlayerPanels();
@@ -61,6 +69,45 @@ public class GUI {
 
         frame.add(boardPanel, BorderLayout.CENTER);
         frame.add(menuPanel, BorderLayout.EAST);
+    }
+
+    private void setupMenu()
+    {
+        //Setup scoreboard
+        //FUTURE NOTE: "00" needs to be replaced with actual scores.
+        scoreboard = new JTextPane();
+
+        /*
+        Font font = new Font("Dialog", Font.BOLD, 20);
+        scoreboard.setFont(font);
+        scoreboard.append("\n\nScoreboard\n\n");
+        scoreboard.append(("Player 1: " + "00\n"));
+        scoreboard.append(("Player 2: " + "00\n"));
+        scoreboard.append(("Player 3: " + "00\n"));
+        scoreboard.append(("Player 4: " + "00\n"));
+
+         */
+        SimpleAttributeSet attributeSet = new SimpleAttributeSet();
+        scoreboard.setCharacterAttributes(attributeSet, true);
+        Document doc = scoreboard.getStyledDocument();
+
+        try
+        {
+            StyleConstants.setBold(attributeSet, true);
+            doc.insertString(doc.getLength(), ("Scoreboard\n"), attributeSet);
+
+            attributeSet = new SimpleAttributeSet();
+            doc.insertString(doc.getLength(), ("Player 1: " + "00\n"), attributeSet);
+            doc.insertString(doc.getLength(), ("Player 2: " + "00\n"), attributeSet);
+            doc.insertString(doc.getLength(), ("Player 3: " + "00\n"), attributeSet);
+            doc.insertString(doc.getLength(), ("Player 4: " + "00\n"), attributeSet);
+        }
+        catch (BadLocationException e)
+        {
+            System.err.println("Could not insert such text into scoreboard");
+        }
+
+        menuPanel.add(scoreboard);
     }
 
     //Set up panels that will hold cards of players using __layout manager

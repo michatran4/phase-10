@@ -5,19 +5,25 @@ import cards.Card;
 import java.util.LinkedList;
 
 public class Turn {
-    private final LinkedList<Card> discardCards;
-    private LinkedList<Card> droppedCards;
-    public Turn(LinkedList<Card> discard) {
-        discardCards = new LinkedList<>(discard);
+    private final LinkedList<Card> droppedCards;
+    private final Card discardCard;
+    private final LinkedList<Card> hitCards;
+
+    public Turn(LinkedList<Card> drop, Card discard, LinkedList<Card> hit) {
+        discardCard = discard;
+        droppedCards = new LinkedList<>(drop);
+        hitCards = new LinkedList<>(hit);
     }
-    public Turn(LinkedList<Card> discard, LinkedList<Card> hit) {
-        discardCards = new LinkedList<>(discard);
-        droppedCards = new LinkedList<>(hit);
-    }
-    public LinkedList<Card> getDiscardCards() {
-        return discardCards;
-    }
+
     public LinkedList<Card> getDroppedCards() {
         return droppedCards;
+    }
+
+    public Card getDiscardCard() {
+        return discardCard;
+    }
+
+    public LinkedList<Card> getHitCards() {
+        return hitCards;
     }
 }

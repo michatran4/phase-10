@@ -12,7 +12,8 @@ public class PhaseTen {
     private CardPile discardPile;
     private DeckManager deckManager;
     private PlayerManager playerManager;
-    private boolean DEBUGGING;
+    private MiddlePileManager middlePileManager;
+    private final boolean DEBUGGING;
     //TODO make sure piles aren't empty, else flip
 
     public PhaseTen() {
@@ -27,33 +28,33 @@ public class PhaseTen {
 
     private void initPhaseCollection() {
         // phase 1
-        LinkedList<Rule> one = new LinkedList<>();
+        Phase one = new Phase();
         one.add(new NumberSet(2, 3));
         // phase 2
-        LinkedList<Rule> two = new LinkedList<>();
+        Phase two = new Phase();
         two.add(new NumberSet(1, 3));
         two.add(new NumberRun(1, 4));
         // phase 3
-        LinkedList<Rule> three = new LinkedList<>();
+        Phase three = new Phase();
         three.add(new NumberSet(1, 4));
         three.add(new NumberRun(1, 4));
         // phase 4
-        LinkedList<Rule> four = new LinkedList<>();
+        Phase four = new Phase();
         four.add(new NumberRun(1, 7));
         // phase 5
-        LinkedList<Rule> five = new LinkedList<>();
+        Phase five = new Phase();
         five.add(new NumberRun(1, 8));
         // phase 6
-        LinkedList<Rule> six = new LinkedList<>();
+        Phase six = new Phase();
         six.add(new NumberRun(1, 9));
         // phase 7
-        LinkedList<Rule> seven = new LinkedList<>();
+        Phase seven = new Phase();
         seven.add(new NumberSet(2, 4));
         // phase 8
-        LinkedList<Rule> eight = new LinkedList<>();
+        Phase eight = new Phase();
         eight.add(new ColorSet(7));
         // phase 9
-        LinkedList<Rule> nine = new LinkedList<>();
+        Phase nine = new Phase();
         nine.add(new NumberSet(1, 5));
         nine.add(new NumberSet(1, 2));
 
@@ -88,6 +89,7 @@ public class PhaseTen {
             drawPile.addCard(new Card("WILD"));
         }
         discardPile = new CardPile(false);
+        middlePileManager = new MiddlePileManager();
     }
 
     private void initPlayers() {

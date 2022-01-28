@@ -7,12 +7,13 @@ import java.util.LinkedList;
  * This is the collection of phase rules.
  */
 public class PhaseCollection {
-    private final ArrayList<LinkedList<Rule>> phases;
+    private final ArrayList<Phase> phases;
+
     public PhaseCollection() {
         phases = new ArrayList<>();
     }
 
-    public void addPhase(LinkedList<Rule> phase) {
+    public void addPhase(Phase phase) {
         phases.add(phase);
     }
 
@@ -20,7 +21,7 @@ public class PhaseCollection {
      * @param phase the rule number
      * @return the rules for a phase
      */
-    public LinkedList<Rule> getPhase(int phase) {
+    public Phase getPhase(int phase) {
         return phases.get(phase);
     }
 
@@ -29,15 +30,9 @@ public class PhaseCollection {
      */
     public String toString() {
         StringBuilder output = new StringBuilder();
-        int index = 1;
-        for (LinkedList<Rule> rules: phases) {
-            output.append(index++).append(". ");
-            for (int i = 0; i < rules.size(); i++) {
-                if (i != 0) {
-                    output.append(" + ");
-                }
-                output.append(rules.get(i).toString());
-            }
+        for (int i = 0; i < phases.size(); i++) {
+            output.append(i + 1).append(". ");
+            output.append(phases.get(i).toString());
             output.append("\n");
         }
         return output.toString();

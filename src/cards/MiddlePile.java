@@ -4,6 +4,11 @@ import phases.*;
 
 import java.util.LinkedList;
 
+/**
+ * Middle piles are created once a player advances on to the next phase.
+ * They are for cards that are hitting.
+ * This class returns if cards can be added to the middle, and adds them if so.
+ */
 public class MiddlePile {
     private final LinkedList<Card> cards; // linked list should be in order
     private final Rule rule;
@@ -16,7 +21,7 @@ public class MiddlePile {
      * @param r       the rule of this pile
      */
     public MiddlePile(LinkedList<Card> dropped, Rule r) {
-        cards = new LinkedList<>(dropped);
+        cards = dropped;
         rule = r;
     }
 
@@ -54,7 +59,7 @@ public class MiddlePile {
         return cards.get(getIndexOfLastNormalCard());
     }
 
-    public boolean addCard(Card toAdd) {
+    public boolean addCard(Card toAdd) { // TODO test
         if (toAdd.toString().equals("SKIP")) {
             throw new IllegalStateException("Shouldn't be putting down skips.");
         }
@@ -87,16 +92,22 @@ public class MiddlePile {
             int first = getIndexOfFirstNormalCard();
             // this the amount wilds that go before the number. calculate what the first wild's number actually is
             int start = getFirstNormalCard().getNum() - first;
+            if (start < 1) {
+                throw new IllegalStateException();
+            }
 
             int last = getIndexOfLastNormalCard();
             // this is the index before any possible wild cards
             int remaining = cards.size() - 1 - last; // find remaining wild cards
             int end = getLastNormalCard().getNum() + remaining;
             // wild and skip card numbers (13 and 14) will never be used to add
+            if (end > 12) {
+                throw new IllegalStateException();
+            }
 
             // start and end are inclusive
             if (toAdd.toString().equals("WILD")) {
-                if (start != -1) {
+                if (start != 1) {
                     cards.add(0, toAdd);
                 }
                 else if (end != 12) {

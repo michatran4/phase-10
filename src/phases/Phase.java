@@ -16,6 +16,10 @@ public class Phase {
         phase.add(r);
     }
 
+    public LinkedList<Rule> getRules() {
+        return phase;
+    }
+
     public String toString() {
         StringBuilder output = new StringBuilder();
         for (int i = 0; i < phase.size(); i++) {

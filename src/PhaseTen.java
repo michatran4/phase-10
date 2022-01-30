@@ -2,6 +2,7 @@ import java.util.*;
 
 import cards.*;
 import phases.*;
+import turns.Turn;
 
 public class PhaseTen {
     private Set<String> skipped; // names of players that are currently skipping
@@ -13,11 +14,9 @@ public class PhaseTen {
     private DeckManager deckManager;
     private PlayerManager playerManager;
     private MiddlePileManager middlePileManager;
-    private final boolean DEBUGGING;
     //TODO make sure piles aren't empty, else flip
 
     public PhaseTen() {
-        DEBUGGING = true;
         skipped = new HashSet<>();
         initPhaseCollection();
         initPiles();
@@ -27,50 +26,11 @@ public class PhaseTen {
     }
 
     private void initPhaseCollection() {
-        // phase 1
-        Phase one = new Phase();
-        one.add(new NumberSet(2, 3));
-        // phase 2
-        Phase two = new Phase();
-        two.add(new NumberSet(1, 3));
-        two.add(new NumberRun(1, 4));
-        // phase 3
-        Phase three = new Phase();
-        three.add(new NumberSet(1, 4));
-        three.add(new NumberRun(1, 4));
-        // phase 4
-        Phase four = new Phase();
-        four.add(new NumberRun(1, 7));
-        // phase 5
-        Phase five = new Phase();
-        five.add(new NumberRun(1, 8));
-        // phase 6
-        Phase six = new Phase();
-        six.add(new NumberRun(1, 9));
-        // phase 7
-        Phase seven = new Phase();
-        seven.add(new NumberSet(2, 4));
-        // phase 8
-        Phase eight = new Phase();
-        eight.add(new ColorSet(7));
-        // phase 9
-        Phase nine = new Phase();
-        nine.add(new NumberSet(1, 5));
-        nine.add(new NumberSet(1, 2));
-
         phases = new PhaseCollection();
-        phases.addPhase(one);
-        phases.addPhase(two);
-        phases.addPhase(three);
-        phases.addPhase(four);
-        phases.addPhase(five);
-        phases.addPhase(six);
-        phases.addPhase(seven);
-        phases.addPhase(eight);
-        phases.addPhase(nine);
-
-        System.out.println("The Phases Are: ");
-        System.out.println(phases.toString());
+        if (Constants.DEBUGGING) {
+            System.out.println("The Phases Are: ");
+            System.out.println(phases.toString());
+        }
     }
 
     private void initPiles() {
@@ -117,7 +77,7 @@ public class PhaseTen {
                 playersDeck.addCard(drawPile.pop());
             }
         }
-        if (DEBUGGING) {
+        if (Constants.DEBUGGING) {
             System.out.println(deckManager.toString());
         }
         discardPile.addCard(drawPile.pop());
@@ -131,7 +91,7 @@ public class PhaseTen {
                 break;
             }
             updateScores();
-            if (DEBUGGING) {
+            if (Constants.DEBUGGING) {
                 System.out.println(getScoreboard());
             }
         }
@@ -145,8 +105,19 @@ public class PhaseTen {
             for (int i = 0; i < playerManager.getNumPlayers(); i++) {
                 String player = playerManager.getNextPlayer();
                 // TODO if piles are bad
+                if (skipped.contains(player)) {
+                    skipped.remove(player);
+                    continue;
+                }
                 if (player.contains("CPU")) {
                     // TODO cpu artificial moves and integrate with GUI
+                    CPUDeck deck = (CPUDeck) deckManager.get(player);
+                    if (hitting.contains(player)) {
+                        Turn turn = deck.getNextTurn(middlePileManager);
+                    }
+                    else {
+                        Turn turn = deck.getNextTurn(phases.getPhase(playerManager.getPhase(player)));
+                    }
                 }
                 else {
                     // TODO integrate with GUI

@@ -66,11 +66,11 @@ public class MiddlePile {
      * Test add to a middle pile that is a number run.
      * Sets have an infinite amount of cards that can be added, while number
      * runs have bounds. Therefore, number runs need to be checked.
-     * @param add the cards that are
-     * @param toAdd
-     * @return
+     * @param add the cards that are to be added, to set up the test case
+     * @param toAdd the card duplicate to be added
+     * @return if the card can be added
      */
-    public boolean testAddNumberRun(LinkedList<Card> add, Card toAdd) {
+    public boolean testAddNumberRun(LinkedList<Card> add, Card toAdd) { // TODO test
         if (!(rule instanceof NumberRun)) {
             throw new IllegalStateException("Method was called incorrectly.");
         }
@@ -105,7 +105,7 @@ public class MiddlePile {
                 }
             }
             if (rule instanceof ColorSet) {
-                if (example.getColor() == toAdd.getColor()) {
+                if (example.getColor().equals(toAdd.getColor())) {
                     if (add) cards.add(toAdd);
                     return true;
                 }

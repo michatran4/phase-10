@@ -27,9 +27,10 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
      * Else, find a card that is one of a kind.
      * Else, discard a card at random.
      *
-     * This turn has no hit cards.
+     * This turn should have no hit cards; it should be determined in
+     * external logic.
      *
-     * @param phase the phase to have good cards for
+     * @param phase the phase to have matching cards for
      * @return the next turn containing the dropped cards and the discarded card
      */
     public Turn getNextTurn(Phase phase) {
@@ -92,17 +93,57 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
                     }
                 }
                 else if (rule instanceof ColorSet) { // remove cards of color
-                    int count = rule.getNumCards();
-
-                    // remove wild cards
+                    // TODO test
+                    // create a color histogram
+                    Map<String, Integer> colors = new TreeMap<>();
+                    for (Card card: deck.keySet()) {
+                        if (card.getColor() != null) { // ignore skips,
+                            // wilds were already counted
+                            String c = card.getColor();
+                            if (colors.get(c) != null) {
+                                colors.put(c, colors.get(c) + deck.get(card));
+                            }
+                            else {
+                                colors.put(c, deck.get(card));
+                            }
+                        }
+                    }
+                    for (String color: colors.keySet()) {
+                        int count = colors.get(color);
+                        /*
+                        histogram doesn't matter, it's only one color set.
+                        just remove cards
+                        */
+                        if (count >= rule.getNumCards()) {
+                            dropped.addAll(removeCardsWithColor(color,
+                                    rule.getNumCards()));
+                            // remove cards with a specific color
+                            break;
+                        }
+                        /*
+                        no need to check if count is ever 0.
+                        this is a histogram, and it's keys have a value of 1+.
+                        therefore, solely wildcards will never be used.
+                         */
+                        // wild card usage because it is insufficient
+                        else if (count + wildCards >= rule.getNumCards()) {
+                            // TODO test with count cards
+                            dropped.addAll(removeCardsWithColor(color, count));
+                            int remainder = rule.getNumCards() - count;
+                            wildCards -= remainder;
+                            dropped.addAll(removeCardsWithNum(14,
+                                    remainder));
+                            break;
+                        }
+                    }
                 }
                 else if (rule instanceof NumberRun) {
                     // remove cards & wilds
                 }
             }
         }
-        // we know that if dropped is empty then there is no drop for the turn
-        // do hits
+
+        // TODO discard
 
         return null;
     }

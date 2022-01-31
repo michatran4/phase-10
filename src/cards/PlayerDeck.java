@@ -3,6 +3,7 @@ package cards;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.DoubleToIntFunction;
 
 /**
  * This represents a player deck, which has sorted cards in a hand for easy
@@ -44,7 +45,6 @@ public class PlayerDeck {
     }
 
     /**
-     * Cards with the same number span across multiple colors.
      * Remove cards with a specific number after being calculated with the
      * histogram in the CPUDeck.
      *
@@ -97,6 +97,66 @@ public class PlayerDeck {
                 throw new IllegalStateException("Prune error.");
             }
             if (card.getNum() == number) {
+                count += deck.get(card);
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Remove cards with a specific color after being calculated with the
+     * color histogram in the CPUDeck.
+     *
+     * This is for color sets.
+     *
+     * @param color the color to match
+     * @param count  how many color sets
+     * @return the removed cards
+     */
+    public LinkedList<Card> removeCardsWithColor(String color, int count) {
+        LinkedList<Card> removed = new LinkedList<>();
+        int countRemoved = 0;
+        for (Card card: deck.keySet()) {
+            if (card.getColor() == null) continue;
+            if (card.getColor().equals(color)) {
+                while (deck.get(card) != 0) { // exhaust card supply
+                    deck.put(card, deck.get(card) - 1);
+                    removed.add(card);
+                    countRemoved++;
+                    if (countRemoved == count) {
+                        break;
+                    }
+                }
+                if (countRemoved == count) {
+                    break;
+                }
+            }
+        }
+        if (countRemoved != count) {
+            throw new IllegalStateException("Color histogram calculation error.");
+        }
+        if (removed.size() != count) {
+            throw new IllegalStateException();
+        }
+        prune();
+        size -= count;
+        return removed;
+    }
+
+    /**
+     * Count cards with a specific color.
+     * This is for testing the deck after wild cards are used.
+     *
+     * @param color the color to check
+     * @return the count
+     */
+    public int countCardsOfColor(String color) {
+        int count = 0;
+        for (Card card: deck.keySet()) {
+            if (deck.get(card) == 0) {
+                throw new IllegalStateException("Prune error.");
+            }
+            if (card.getColor().equals(color)) {
                 count += deck.get(card);
             }
         }

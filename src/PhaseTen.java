@@ -119,6 +119,8 @@ public class PhaseTen {
                     if (hitting.contains(player)) {
                         Turn turn = deck.getNextTurn(middlePileManager);
                         // validate the turn
+                        // if the turn has dropped cards then give the chance to
+                        // hit, too
                     }
                     else {
                         Turn turn = deck.getNextTurn(phases.getPhase(playerManager.getPhase(player)));

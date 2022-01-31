@@ -179,7 +179,7 @@ public class TurnValidator {
                     if (c.toString().equals("WILD")) {
                         wildCards--;
                     }
-                    else if (c.getColor() != normal.getColor()) {
+                    else if (!(c.getColor().equals(normal.getColor()))){
                         return false;
                     }
                 }

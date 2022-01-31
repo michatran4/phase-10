@@ -1,7 +1,5 @@
 package cards;
 
-import java.awt.*;
-
 /**
  * This represents a card.
  * Cards can have a number and color, or they are special.
@@ -30,14 +28,8 @@ public class Card implements Comparable<Card> {
         return num;
     }
 
-    public Color getColor() {
-        return switch (color) {
-            case "RED" -> Color.RED;
-            case "BLUE" -> Color.BLUE;
-            case "YELLOW" -> Color.YELLOW;
-            case "GREEN" -> Color.GREEN;
-            default -> null;
-        };
+    public String getColor() {
+        return color;
     }
 
     public boolean equals(Object obj) { // for treemap position
@@ -45,7 +37,7 @@ public class Card implements Comparable<Card> {
             return false;
         }
         Card other = (Card) obj;
-        return other.getNum() == getNum() && other.getColor() == getColor();
+        return getNum() == other.getNum() && getColor().equals(other.getColor());
     }
 
     public int compareTo(Card o) {

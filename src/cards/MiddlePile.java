@@ -21,7 +21,10 @@ public class MiddlePile {
      * @param r       the rule of this pile
      */
     public MiddlePile(LinkedList<Card> dropped, Rule r) {
-        cards = dropped;
+        if (dropped.size() != r.getNumCards()) {
+            throw new IllegalArgumentException();
+        }
+        cards = new LinkedList<>(dropped);
         rule = r;
     }
 
@@ -59,26 +62,51 @@ public class MiddlePile {
         return cards.get(getIndexOfLastNormalCard());
     }
 
-    public boolean addCard(Card toAdd) { // TODO test
+    /**
+     * Test add to a middle pile that is a number run.
+     * Sets have an infinite amount of cards that can be added, while number
+     * runs have bounds. Therefore, number runs need to be checked.
+     * @param add the cards that are
+     * @param toAdd
+     * @return
+     */
+    public boolean testAddNumberRun(LinkedList<Card> add, Card toAdd) {
+        if (!(rule instanceof NumberRun)) {
+            throw new IllegalStateException("Method was called incorrectly.");
+        }
+
+        LinkedList<Card> test = new LinkedList<>(cards);
+        // TODO add modified number run logic from addCard method
+        // add variable should not be considered because test is a duplicate?
+        return true;
+    }
+
+    /**
+     * Add a card to the middle pile.
+     * @param toAdd card to add
+     * @param add add the card to pile, or if it's just a peek test
+     * @return if the card was added successfully (or addable)
+     */
+    public boolean addCard(Card toAdd, boolean add) { // TODO test
         if (toAdd.toString().equals("SKIP")) {
             throw new IllegalStateException("Shouldn't be putting down skips.");
         }
         if (rule instanceof NumberSet || rule instanceof ColorSet) {
             if (toAdd.toString().equals("WILD")) {
-                cards.add(toAdd);
+                if (add) cards.add(toAdd);
                 return true;
             }
 
             Card example = getFirstNormalCard();
             if (rule instanceof NumberSet) {
                 if (example.getNum() == toAdd.getNum()) {
-                    cards.add(toAdd);
+                    if (add) cards.add(toAdd);
                     return true;
                 }
             }
             if (rule instanceof ColorSet) {
                 if (example.getColor() == toAdd.getColor()) {
-                    cards.add(toAdd);
+                    if (add) cards.add(toAdd);
                     return true;
                 }
             }
@@ -108,10 +136,14 @@ public class MiddlePile {
             // start and end are inclusive
             if (toAdd.toString().equals("WILD")) {
                 if (start != 1) {
-                    cards.add(0, toAdd);
+                    if (add) {
+                        cards.add(0, toAdd);
+                    }
                 }
                 else if (end != 12) {
-                    cards.add(toAdd);
+                    if (add) {
+                        cards.add(toAdd);
+                    }
                 }
                 else {
                     throw new IllegalStateException("Should be in bounds.");
@@ -120,10 +152,10 @@ public class MiddlePile {
             }
             int num = toAdd.getNum();
             if (start != 1 && num < start) { // beginning is available
-                cards.add(0, toAdd); // TODO beginning vs end matters for gameplay?
+                if (add) cards.add(0, toAdd); // TODO beginning vs end matters for gameplay?
             }
             else if (end != 12 && num > end) {
-                cards.add(toAdd);
+                if (add) cards.add(toAdd);
             }
             else {
                 return false;

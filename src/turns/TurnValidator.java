@@ -1,6 +1,8 @@
 package turns;
 
 import cards.Card;
+import cards.MiddlePile;
+import cards.MiddlePileManager;
 import phases.NumberRun;
 import phases.NumberSet;
 import phases.Phase;
@@ -28,11 +30,13 @@ public class TurnValidator {
     }
 
     /**
-     * Validates turns based on the phase.
+     * Validates dropped cards based on the phase.
      * The only concern is the multiple rule phases,
      * where number sets and runs are together.
      * However, this is taken care of by removing the cards after they are checked.
      *
+     * @param turn the turn to validate
+     * @param phase the phase to check with
      * @return if the turn is valid
      */
     public boolean validate(Turn turn, Phase phase) {
@@ -59,7 +63,7 @@ public class TurnValidator {
         }
         int wildCards = 0; // number of wild cards
         if (histogram.get(14) != null) {
-            wildCards = histogram.get(14); // check this at the end TODO
+            wildCards = histogram.get(14); // check this at the end
             histogram.put(14, 0); // ignore wild card usage in the main logic.
         }
         System.out.println(histogram.keySet());
@@ -81,6 +85,11 @@ public class TurnValidator {
                         if (--ruleCount == 0) break;
                     }
                     // wild card usage because it is insufficient
+                    /*
+                    no need to check if count is ever 0.
+                    this is a histogram, and it's keys are looped through once.
+                    therefore, solely wildcards will never be used.
+                     */
                     else if (count + wildCards >= rule.getNumCards()) {
                         int decrement = rule.getNumCards() - count;
                         wildCards -= decrement;
@@ -98,7 +107,6 @@ public class TurnValidator {
                     }
                     return false;
                 }
-                // TODO use some list and return as a successful number set
             }
             else if (rule instanceof NumberRun) {
                 // should be a perfect number run with a count of 1
@@ -158,9 +166,10 @@ public class TurnValidator {
                 // all cards should be the same color
 
                 Card normal = null;
-                for (Card card: dropped) {
+                for (Card card: dropped) { // find first normal card to compare
                     if (!card.toString().equals("WILD")) {
                         normal = card;
+                        break;
                     }
                 }
                 if (normal == null) {
@@ -185,6 +194,32 @@ public class TurnValidator {
                 return false;
             }
         }
-        return wildCards == 0; // make sure all wild cards are used too
+        return wildCards == 0; // make sure all wild cards are used too, earlier they were set to 0
+    }
+
+    /**
+     * Validates cards that are hit on to the middle piles.
+     * @param turn the turn to validate
+     * @param middlePileManager the middle piles to check with
+     * @return if the hit cards are valid
+     */
+    public boolean validate(Turn turn, MiddlePileManager middlePileManager) {
+        LinkedList<Card> hit = turn.getHitCards();
+        for (Card c: hit) {
+            boolean found = false;
+            for (MiddlePile middlePile: middlePileManager.getMiddlePiles()) {
+                if (middlePile.addCard(c, false)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                if (DEBUGGING) {
+                    System.out.println("Failed to find a pile for " + c.toString());
+                }
+                return false;
+            }
+        }
+        return true;
     }
 }

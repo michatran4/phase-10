@@ -37,6 +37,13 @@ public class PlayerManager {
     }
 
     /**
+     * @return the next player, for knowing who to skip
+     */
+    public String peek() {
+        return playerList.peek();
+    }
+
+    /**
      * Returns the provided player's current phase.
      * @param name the player to check
      * @return the phase number

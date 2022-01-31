@@ -1,0 +1,6 @@
+- Integrate the GUI
+    - GUI should have way for the player to choose either to discard, drop, or
+    hit.
+- Finish get next turn algorithms
+- Make game documentation
+- Format everything to 80 character wrap

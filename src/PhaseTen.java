@@ -5,29 +5,33 @@ import phases.*;
 import turns.Turn;
 
 public class PhaseTen {
-    private Set<String> skipped; // names of players that are currently skipping
-    private Set<String> hitting; // players that have completed the phase
-    private Map<String, Integer> scoreboard;
+    private final Set<String> skipped; // names of players that are currently skipping
+    private final Set<String> hitting; // players that have completed the phase
+    private final Map<String, Integer> scoreboard;
     private PhaseCollection phases;
     private CardPile drawPile;
     private CardPile discardPile;
     private DeckManager deckManager;
     private PlayerManager playerManager;
     private MiddlePileManager middlePileManager;
+    private final boolean DEBUGGING;
     //TODO make sure piles aren't empty, else flip
 
-    public PhaseTen() {
+    public PhaseTen(boolean b) {
         skipped = new HashSet<>();
+        hitting = new HashSet<>();
+        scoreboard = new HashMap<>();
         initPhaseCollection();
         initPiles();
         drawPile.shuffle();
         initPlayers();
         //startGame();
+        DEBUGGING = b;
     }
 
     private void initPhaseCollection() {
         phases = new PhaseCollection();
-        if (Constants.DEBUGGING) {
+        if (DEBUGGING) {
             System.out.println("The Phases Are: ");
             System.out.println(phases.toString());
         }
@@ -77,7 +81,7 @@ public class PhaseTen {
                 playersDeck.addCard(drawPile.pop());
             }
         }
-        if (Constants.DEBUGGING) {
+        if (DEBUGGING) {
             System.out.println(deckManager.toString());
         }
         discardPile.addCard(drawPile.pop());
@@ -91,7 +95,7 @@ public class PhaseTen {
                 break;
             }
             updateScores();
-            if (Constants.DEBUGGING) {
+            if (DEBUGGING) {
                 System.out.println(getScoreboard());
             }
         }
@@ -114,6 +118,7 @@ public class PhaseTen {
                     CPUDeck deck = (CPUDeck) deckManager.get(player);
                     if (hitting.contains(player)) {
                         Turn turn = deck.getNextTurn(middlePileManager);
+                        // validate the turn
                     }
                     else {
                         Turn turn = deck.getNextTurn(phases.getPhase(playerManager.getPhase(player)));

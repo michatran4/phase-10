@@ -1,23 +1,25 @@
 package cards;
 
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * This represents a player deck, which has sorted cards in a hand for easy identification of sets and runs.
+ * This represents a player deck, which has sorted cards in a hand for easy
+ * identification of sets and runs.
  */
 public class PlayerDeck {
     private final Map<Card, Integer> deck;
+    private int size;
+
     public PlayerDeck() {
         deck = new TreeMap<>();
+        size = 0;
     }
+
     public void addCard(Card c) {
-        if (deck.containsKey(c)) {
-            deck.put(c, deck.get(c) + 1);
-        }
-        else {
-            deck.put(c, 1);
-        }
+        deck.merge(c, 1, Integer::sum);
+        size++;
     }
 
     public Card removeCard(Card card) {
@@ -29,7 +31,84 @@ public class PlayerDeck {
         else {
             deck.put(card, count - 1);
         }
+        size--;
         return card;
+    }
+
+    /**
+     * Prunes all cards with a value of 0.
+     * Tested in TestPrune.java
+     */
+    private void prune() {
+        while (deck.values().remove(0)) ;
+    }
+
+    /**
+     * Cards with the same number span across multiple colors.
+     * Remove cards with a specific number after being calculated with the
+     * histogram in the CPUDeck.
+     *
+     * This is for number sets, and only removes the number cards.
+     *
+     * @param number the number to match
+     * @param count  how many number sets
+     * @return the removed cards
+     */
+    public LinkedList<Card> removeCardsWithNum(int number, int count) {
+        LinkedList<Card> removed = new LinkedList<>();
+        int countRemoved = 0;
+        for (Card card: deck.keySet()) {
+            if (card.getNum() == number) {
+                while (deck.get(card) != 0) { // exhaust card supply
+                    deck.put(card, deck.get(card) - 1);
+                    removed.add(card);
+                    countRemoved++;
+                    if (countRemoved == count) {
+                        break;
+                    }
+                }
+                if (countRemoved == count) {
+                    break;
+                }
+            }
+        }
+        if (countRemoved != count) {
+            throw new IllegalStateException("Histogram calculation error.");
+        }
+        if (removed.size() != count) {
+            throw new IllegalStateException();
+        }
+        prune();
+        size -= count;
+        return removed;
+    }
+
+    /**
+     * Count cards with a specific number.
+     * This is for testing the deck after wild cards are used.
+     *
+     * @param number the number to check
+     * @return the count
+     */
+    public int countCardsOfNum(int number) {
+        int count = 0;
+        for (Card card: deck.keySet()) {
+            if (deck.get(card) == 0) {
+                throw new IllegalStateException("Prune error.");
+            }
+            if (card.getNum() == number) {
+                count += deck.get(card);
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Clear the deck when a round ends. TODO double check
+     */
+    public void clear() {
+        deck.clear();
+        size = 0;
     }
 
     public boolean isEmpty() {
@@ -68,7 +147,17 @@ public class PlayerDeck {
         return sum;
     }
 
-    public Map<Card, Integer> getDeck() { // should only be used for CPUDeck
+    /**
+     * For the CPUDeck to get the deck, and for when the round ends, decks to
+     * be replenished. TODO
+     *
+     * @return the current deck
+     */
+    public Map<Card, Integer> getDeck() {
         return deck;
+    }
+
+    public int getSize() {
+        return size;
     }
 }

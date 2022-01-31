@@ -3,6 +3,6 @@
  */
 public class CLI {
     public static void main(String[] args) {
-        PhaseTen game = new PhaseTen();
+        PhaseTen game = new PhaseTen(true);
     }
 }

@@ -30,4 +30,14 @@ public class Phase {
         }
         return output.toString();
     }
+
+    public int getTotalNumCards() {
+        int sum = 0;
+        for (Rule r: phase) {
+            for (int i = 0; i < r.getCount(); i++) {
+                sum += r.getNumCards();
+            }
+        }
+        return sum;
+    }
 }

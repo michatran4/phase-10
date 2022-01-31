@@ -8,6 +8,7 @@ import java.awt.*;
 public class GUI {
     private final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     private final Dimension boardSize = new Dimension((int)((7)*(screenSize.getWidth()/8)), (int)screenSize.getHeight());
+    private final Dimension menuSize = new Dimension((int)(screenSize.getWidth()/8), screenSize.height);
     private final Color bgColor = new Color(2, 48, 32);
     private final int cardWidth = 120;
     private final int cardHeight = 160;
@@ -38,6 +39,9 @@ public class GUI {
         //Setup centerPanel discard and draw card piles
         setupCenterPanel();
 
+        //Setup card distribution
+        newRound();
+
         frame.setVisible(true);
     }
 
@@ -64,7 +68,6 @@ public class GUI {
         //menuPanel is for the scoreboard and instructions
         menuPanel = new JPanel();
         menuPanel.setBackground(Color.white);
-        Dimension menuSize = new Dimension((int)(screenSize.getWidth()/8), screenSize.height);
         menuPanel.setPreferredSize(menuSize);
 
         frame.add(boardPanel, BorderLayout.CENTER);
@@ -76,63 +79,70 @@ public class GUI {
         //Setup scoreboard
         //FUTURE NOTE: "00" needs to be replaced with actual scores.
         scoreboard = new JTextPane();
-
-        /*
-        Font font = new Font("Dialog", Font.BOLD, 20);
+        Font font = new Font("Dialog", Font.PLAIN, 20);
         scoreboard.setFont(font);
-        scoreboard.append("\n\nScoreboard\n\n");
-        scoreboard.append(("Player 1: " + "00\n"));
-        scoreboard.append(("Player 2: " + "00\n"));
-        scoreboard.append(("Player 3: " + "00\n"));
-        scoreboard.append(("Player 4: " + "00\n"));
 
-         */
         SimpleAttributeSet attributeSet = new SimpleAttributeSet();
         scoreboard.setCharacterAttributes(attributeSet, true);
         Document doc = scoreboard.getStyledDocument();
-
         try
         {
+            StyleConstants.setFontSize(attributeSet, 28);
             StyleConstants.setBold(attributeSet, true);
-            doc.insertString(doc.getLength(), ("Scoreboard\n"), attributeSet);
+            StyleConstants.setItalic(attributeSet, true);
+            StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
+            doc.insertString(doc.getLength(), ("Scoreboard\n\n"), attributeSet);
 
             attributeSet = new SimpleAttributeSet();
-            doc.insertString(doc.getLength(), ("Player 1: " + "00\n"), attributeSet);
-            doc.insertString(doc.getLength(), ("Player 2: " + "00\n"), attributeSet);
-            doc.insertString(doc.getLength(), ("Player 3: " + "00\n"), attributeSet);
-            doc.insertString(doc.getLength(), ("Player 4: " + "00\n"), attributeSet);
+            StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
+            StyleConstants.setFontSize(attributeSet, 18);
+            doc.insertString(doc.getLength(), ("Player 1: " + "00\n\n"), attributeSet);
+            doc.insertString(doc.getLength(), ("Player 2: " + "00\n\n"), attributeSet);
+            doc.insertString(doc.getLength(), ("Player 3: " + "00\n\n"), attributeSet);
+            doc.insertString(doc.getLength(), ("Player 4: " + "00\n\n"), attributeSet);
         }
         catch (BadLocationException e)
         {
             System.err.println("Could not insert such text into scoreboard");
         }
 
+        //Setup Instructions
+        JLabel instructions = new JLabel();
+        ImageIcon icon = new ImageIcon("phase10 instructions.png");
+        icon = new ImageIcon(icon.getImage().getScaledInstance((int)menuSize.getWidth(), (int)(menuSize.getHeight()/3), Image.SCALE_DEFAULT));
+        instructions.setIcon(icon);
+
         menuPanel.add(scoreboard);
+        menuPanel.add(instructions);
     }
 
-    //Set up panels that will hold cards of players using __layout manager
+    //Set up panels that will hold cards of players using GridLayout manager
     private void setupPlayerPanels()
     {
-        int top_botPanelWidth = (int)(6*(boardSize.getWidth()/7));
-        int top_botPanelHeight = (int)(boardSize.getHeight()/7);
-        int sidePanelsWidth = (int)(boardSize.getHeight()/7);
-        int sidePanelsHeight = (int)(6*(boardSize.getWidth()/7));
+        int top_botPanelWidth = (int)(5*(boardSize.getWidth()/6));
+        int top_botPanelHeight = (int)(boardSize.getHeight()/6);
+        int sidePanelsWidth = (int)(boardSize.getHeight()/6);
+        int sidePanelsHeight = (int)(5*(boardSize.getWidth()/6));
 
         botPanel = new JPanel(); //Contains Player 1, aka person playing
         botPanel.setBackground(bgColor);
         botPanel.setPreferredSize(new Dimension(top_botPanelWidth, (int)((1.75)*top_botPanelHeight)));
+        botPanel.setLayout(new GridLayout(1,10));
 
         rightPanel = new JPanel(); //Contains Player 2 cards, CPU
         rightPanel.setBackground(bgColor);
         rightPanel.setPreferredSize(new Dimension(sidePanelsWidth, sidePanelsHeight));
+        rightPanel.setLayout(new GridLayout(1,10));
 
         topPanel = new JPanel(); //Contains Player 3 cards, CPU
         topPanel.setBackground(bgColor);
         topPanel.setPreferredSize(new Dimension(top_botPanelWidth, top_botPanelHeight));
+        topPanel.setLayout(new GridLayout(1,10));
 
         leftPanel = new JPanel(); //Contains Player 4 cards, CPU
         leftPanel.setBackground(bgColor);
         leftPanel.setPreferredSize(new Dimension(sidePanelsWidth, sidePanelsHeight));
+        leftPanel.setLayout(new GridLayout(1,10));
 
         centerPanel = new JPanel(); //Contains the draw and discard piles (centerLeft) AND completed phase sets (centerRight)
         centerPanel.setLayout(new BorderLayout());
@@ -161,6 +171,7 @@ public class GUI {
         drawPile.setPreferredSize(new Dimension(cardWidth,cardHeight));
         centerLeftPanel.add(drawPile);
 
+        //FUTURE NOTE: actual card displayed should be determined after integration
         Icon card = new ImageIcon("yellow three.png");
         discardPile = new JButton(card);
         discardPile.setPreferredSize(new Dimension(cardWidth,cardHeight));
@@ -173,5 +184,17 @@ public class GUI {
 
         centerPanel.add(centerLeftPanel, BorderLayout.WEST);
         centerPanel.add(centerRightPanel, BorderLayout.EAST);
+    }
+
+    //at beginning of each new round deal new cards and new draw/discard pile
+    public void newRound()
+    {
+        deal();
+    }
+
+    //at the start of each set 10 cards (buttons) get added to the player panels
+    public void deal()
+    {
+
     }
 }

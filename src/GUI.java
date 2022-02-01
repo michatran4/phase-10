@@ -6,14 +6,17 @@ import javax.swing.text.StyleConstants;
 import java.awt.*;
 
 public class GUI {
-    private final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    private final Dimension boardSize = new Dimension((int)((7)*(screenSize.getWidth()/8)), (int)screenSize.getHeight());
-    private final Dimension menuSize = new Dimension((int)(screenSize.getWidth()/8), screenSize.height);
     private final Color bgColor = new Color(2, 48, 32);
     private final int cardWidth = 120;
     private final int cardHeight = 160;
+    private final ImageIcon cardBack0 = new ImageIcon("back0.png");
+    private final ImageIcon cardBack90 = new ImageIcon("back90.png");
+    private final ImageIcon cardBack180 = new ImageIcon("back180.png");
+    private final ImageIcon cardBack270 = new ImageIcon("back270.png");
+    private final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    private final Dimension boardSize = new Dimension((int)((7)*(screenSize.getWidth()/8)), (int)screenSize.getHeight());
+    private final Dimension menuSize = new Dimension((int)(screenSize.getWidth()/8), screenSize.height);
 
-    private Icon cardBack;
     private JFrame frame;
     private JPanel boardPanel, menuPanel; //main parent panels
     private JPanel topPanel, leftPanel, rightPanel, botPanel; //player panels
@@ -126,23 +129,27 @@ public class GUI {
 
         botPanel = new JPanel(); //Contains Player 1, aka person playing
         botPanel.setBackground(bgColor);
-        botPanel.setPreferredSize(new Dimension(top_botPanelWidth, (int)((1.75)*top_botPanelHeight)));
-        botPanel.setLayout(new GridLayout(1,10));
-
-        rightPanel = new JPanel(); //Contains Player 2 cards, CPU
-        rightPanel.setBackground(bgColor);
-        rightPanel.setPreferredSize(new Dimension(sidePanelsWidth, sidePanelsHeight));
-        rightPanel.setLayout(new GridLayout(1,10));
+        botPanel.setPreferredSize(new Dimension(top_botPanelWidth, top_botPanelHeight));
+        botPanel.setBorder(BorderFactory.createEmptyBorder(0, 170, 30, 170));
+        botPanel.setLayout(new GridLayout(1, 10, 15, 0));
 
         topPanel = new JPanel(); //Contains Player 3 cards, CPU
         topPanel.setBackground(bgColor);
         topPanel.setPreferredSize(new Dimension(top_botPanelWidth, top_botPanelHeight));
-        topPanel.setLayout(new GridLayout(1,10));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(40, 170, 0, 170));
+        topPanel.setLayout(new GridLayout(1,10, 15, 0));
+
+        rightPanel = new JPanel(); //Contains Player 2 cards, CPU
+        rightPanel.setBackground(bgColor);
+        rightPanel.setPreferredSize(new Dimension(sidePanelsWidth, sidePanelsHeight));
+        rightPanel.setBorder(BorderFactory.createEmptyBorder(0, 45, 0, 50));
+        rightPanel.setLayout(new GridLayout(10,1, 0, 10));
 
         leftPanel = new JPanel(); //Contains Player 4 cards, CPU
         leftPanel.setBackground(bgColor);
         leftPanel.setPreferredSize(new Dimension(sidePanelsWidth, sidePanelsHeight));
-        leftPanel.setLayout(new GridLayout(1,10));
+        leftPanel.setBorder(BorderFactory.createEmptyBorder(0, 50, 0, 45));
+        leftPanel.setLayout(new GridLayout(10,1, 0, 10));
 
         centerPanel = new JPanel(); //Contains the draw and discard piles (centerLeft) AND completed phase sets (centerRight)
         centerPanel.setLayout(new BorderLayout());
@@ -165,15 +172,12 @@ public class GUI {
         int vgap = (int)(boardSize.getHeight()/6); //distance from top and bottom of centerPanel
         centerLeftPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 50, vgap));
 
-        ImageIcon img = new ImageIcon("back.png");
-        cardBack = new ImageIcon(img.getImage().getScaledInstance(cardWidth, cardHeight, Image.SCALE_DEFAULT));
-        drawPile = new JButton(cardBack);
+        drawPile = new JButton(cardBack0);
         drawPile.setPreferredSize(new Dimension(cardWidth,cardHeight));
         centerLeftPanel.add(drawPile);
 
         //FUTURE NOTE: actual card displayed should be determined after integration
-        Icon card = new ImageIcon("yellow three.png");
-        discardPile = new JButton(card);
+        discardPile = new JButton();
         discardPile.setPreferredSize(new Dimension(cardWidth,cardHeight));
         centerLeftPanel.add(discardPile);
 
@@ -189,12 +193,57 @@ public class GUI {
     //at beginning of each new round deal new cards and new draw/discard pile
     public void newRound()
     {
+        //Player cards
         deal();
+
+        //Discard pile
+        Icon card = new ImageIcon("yellow three.png");
+        discardPile.setIcon(card);
     }
 
     //at the start of each set 10 cards (buttons) get added to the player panels
     public void deal()
     {
+        //CPU CARDS, all should be card backs, player should not be able to see other cards
+        int sideWidth = (int)(cardHeight*.4);
+        int sideHeight = (int)(cardWidth*.4);
+        ImageIcon rightCard = new ImageIcon(cardBack270.getImage().getScaledInstance(sideWidth, sideHeight, Image.SCALE_DEFAULT));
+        ImageIcon leftCard = new ImageIcon(cardBack90.getImage().getScaledInstance(sideWidth, sideHeight, Image.SCALE_DEFAULT));
 
+        int tbWidth = (int)(cardWidth*.75);
+        int tbHeight = (int)(cardHeight*.75);
+        ImageIcon topCard = new ImageIcon(cardBack180.getImage().getScaledInstance(tbWidth, tbHeight, Image.SCALE_DEFAULT));
+        ImageIcon botCard = new ImageIcon(cardBack0.getImage().getScaledInstance(tbWidth, tbHeight, Image.SCALE_DEFAULT));
+
+        //CPU CARDS, all should be card backs, player should not be able to see other cards
+        //Right Panel
+        for(int i = 0; i < 10; i++)
+        {
+            JButton card = new JButton(rightCard);
+            card.setPreferredSize(new Dimension(cardHeight, cardWidth));
+            rightPanel.add(card);
+        }
+        //Top Panel Cards
+        for(int i = 0; i < 10; i++)
+        {
+            JButton card = new JButton(topCard);
+            card.setPreferredSize(new Dimension(cardWidth, cardHeight));
+            topPanel.add(card);
+        }
+        //Left Panel
+        for(int i = 0; i < 10; i++)
+        {
+            JButton card = new JButton(leftCard);
+            card.setPreferredSize(new Dimension(cardHeight, cardWidth));
+            leftPanel.add(card);
+        }
+
+        //Bot Panel Cards, PLAYER
+        for(int i = 0; i < 10; i++)
+        {
+            JButton card = new JButton();
+            card.setPreferredSize(new Dimension(cardWidth, cardHeight));
+            botPanel.add(card);
+        }
     }
 }

@@ -118,21 +118,27 @@ public class PhaseTen {
                     CPUDeck deck = (CPUDeck) deckManager.get(player);
                     if (hitting.contains(player)) {
                         Turn turn = deck.getNextTurn(middlePileManager);
-                        // validate the turn
-                        // if the turn has dropped cards then give the chance to
-                        // hit, too
+                        // TODO do something with turns, they contain cards
+                        //  that cannot be lost
                     }
                     else {
                         Turn turn = deck.getNextTurn(phases.getPhase(playerManager.getPhase(player)));
+                        Turn hit;
+                        if (turn.getDroppedCards().size() != 0) {
+                            hitting.add(player);
+                            hit = deck.getNextTurn(middlePileManager);
+                        }
+
                     }
                 }
                 else {
-                    // TODO integrate with GUI
-                    // TODO check if it's the correct phase
+                    // TODO integrate with GUI,
+                    //  check if it's the correct phase
                 }
             }
         }
-        // TODO scoring and fixing piles?
+        // TODO scoring and fixing piles
+        // TODO reset sets
     }
 
     /**

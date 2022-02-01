@@ -16,6 +16,20 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
         deck = getDeck();
     }
 
+    private TreeMap<Integer, Integer> getHistogram() {
+        TreeMap<Integer, Integer> histogram = new TreeMap<>();
+        for (Card c: deck.keySet()) {
+            if (histogram.get(c.getNum()) != null) {
+                histogram.put(c.getNum(),
+                        histogram.get(c.getNum()) + deck.get(c));
+            }
+            else {
+                histogram.put(c.getNum(), deck.get(c));
+            }
+        }
+        return histogram;
+    }
+
     /**
      * The next turn to play for the CPU.
      * Find cards that match the phase, and make sure it has at least one
@@ -37,21 +51,13 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
         LinkedList<Card> dropped = new LinkedList<>();
         if (getSize() - phase.getTotalNumCards() > 0) { // sufficient cards
             // make a histogram for ease of checking
-            Map<Integer, Integer> histogram = new TreeMap<>();
-            for (Card c: deck.keySet()) {
-                if (histogram.get(c.getNum()) != null) {
-                    histogram.put(c.getNum(),
-                            histogram.get(c.getNum()) + deck.get(c));
-                }
-                else {
-                    histogram.put(c.getNum(), deck.get(c));
-                }
-            }
+            TreeMap<Integer, Integer> histogram = getHistogram();
             int wildCards = 0; // number of wild cards
             if (histogram.get(14) != null) {
                 wildCards = histogram.get(14);
-                histogram.put(14, 0); // ignore wild card usage in main logic
+                histogram.remove(14); // ignore wild card usage in main logic
             }
+            histogram.remove(13); // ignore skip card usage in main logic
             for (Rule rule: phase.getRules()) {
                 if (rule instanceof NumberSet) {
                     int ruleCount = rule.getCount();
@@ -138,14 +144,100 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
                     }
                 }
                 else if (rule instanceof NumberRun) {
-                    // remove cards & wilds
+                    int foundNum = -1;
+                    for (int num: histogram.keySet()) {
+                        int wilds = wildCards; // store wilds, decrement test
+                        boolean flag = false;
+                        for (int i = 0; i < rule.getNumCards(); i++) { //
+                            // assumed to only be count of 1
+                            // set it to true once a run is broken
+                            // or insufficient wilds
+                            if (histogram.get(num + i) == null) {
+                                // check wilds
+                                if (wilds-- == 0) {
+                                    flag = true;
+                                    break; // avoid checking further runs
+                                }
+                            }
+                        }
+                        if (!flag) {
+                            foundNum = num;
+                            break;
+                        }
+                    }
+                    if (foundNum != -1) {
+                        for (int i = 0; i < rule.getNumCards(); i++) {
+                            if (histogram.get(foundNum + i) != null) {
+                                // histogram modification doesn't matter as
+                                // runs are always the last rule
+                                dropped.addAll(
+                                        removeCardsWithNum(foundNum + i,
+                                        1));
+                            }
+                            else {
+                                dropped.addAll(
+                                        removeCardsWithNum(14, 1));
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        // TODO discard
+        // if there is a successful phase played, let the hit method do the
+        // discarding. find a hit, then discard after.
+        if (dropped.size() != 0) {
+            return new Turn(dropped, null, null);
+        }
 
-        return null;
+        Card discard = getDiscardCard();
+        deck.remove(discard);
+        return new Turn(dropped, discard, null);
+    }
+
+    private Card getDiscardCard() {
+        Card discard = null;
+        if (deck.size() == 1) {
+            for (Card card: deck.keySet()) {
+                discard = card;
+                break;
+            }
+        }
+        else {
+            // find skip
+            TreeMap<Integer, Integer> histogram = getHistogram();
+            if (histogram.containsKey(13)) { // contains a skip
+                for (Card card: deck.keySet()) {
+                    if (card.toString().equals("SKIP")) {
+                        discard = card;
+                        break;
+                    }
+                }
+            }
+            else if (histogram.containsValue(1)) { // one of a kind
+                for (Card card: deck.keySet()) {
+                    if (deck.get(card) == 1) {
+                        discard = card;
+                        break;
+                    }
+                }
+            }
+            else { // discard a card with the smallest count
+                // least likely to have built up a set
+                int lowest = Integer.MAX_VALUE;
+                for (Card card: deck.keySet()) {
+                    if (deck.get(card) < lowest) {
+                        lowest = deck.get(card);
+                        discard = card;
+                    }
+                }
+            }
+        }
+        if (discard == null) {
+            throw new IllegalStateException();
+        }
+
+        return discard;
     }
 
     /**
@@ -164,8 +256,10 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
      * @return the next turn containing the cards that can be hit and the
      * discarded card
      */
-    public Turn getNextTurn(MiddlePileManager middlePileManager) { // TODO test
+    public Turn getNextTurn(MiddlePileManager middlePileManager) {
+        // TODO test
         LinkedList<Card> hit = new LinkedList<>();
+        // TODO use a histogram?
         for (Card card: deck.keySet()) {
             for (MiddlePile middlePile: middlePileManager.getMiddlePiles()) {
                 if (middlePile.addCard(card, false)) { // successful add
@@ -182,7 +276,11 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
                     }
                 }
             }
+
         }
-        return null;
+        // TODO discard
+        Card discard = getDiscardCard();
+        deck.remove(discard);
+        return new Turn(null, discard, hit);
     }
 }

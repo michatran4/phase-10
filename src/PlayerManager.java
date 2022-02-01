@@ -66,7 +66,7 @@ public class PlayerManager {
 
     /**
      * Advances a player to the next phase.
-     * @param name
+     * @param name the player name
      */
     public void incrementPhase(String name) {
         if (phaseMap.get(name) >= 10) { // 10 is the winning phase

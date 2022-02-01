@@ -3,7 +3,6 @@ package cards;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.function.DoubleToIntFunction;
 
 /**
  * This represents a player deck, which has sorted cards in a hand for easy
@@ -82,6 +81,8 @@ public class PlayerDeck {
         size -= count;
         return removed;
     }
+
+    // TODO remove single card so there is no creation of a linked list
 
     /**
      * Count cards with a specific number.

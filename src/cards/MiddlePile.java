@@ -54,11 +54,11 @@ public class MiddlePile {
         throw new IllegalStateException("A stack must contain a non wild card.");
     }
 
-    private Card getFirstNormalCard() {
+    public Card getFirstNormalCard() {
         return cards.get(getIndexOfFirstNormalCard());
     }
 
-    private Card getLastNormalCard() {
+    public Card getLastNormalCard() {
         return cards.get(getIndexOfLastNormalCard());
     }
 
@@ -117,21 +117,8 @@ public class MiddlePile {
                 return false;
             }
             // find the bounds of the pile
-            int first = getIndexOfFirstNormalCard();
-            // this the amount wilds that go before the number. calculate what the first wild's number actually is
-            int start = getFirstNormalCard().getNum() - first;
-            if (start < 1) {
-                throw new IllegalStateException();
-            }
-
-            int last = getIndexOfLastNormalCard();
-            // this is the index before any possible wild cards
-            int remaining = cards.size() - 1 - last; // find remaining wild cards
-            int end = getLastNormalCard().getNum() + remaining;
-            // wild and skip card numbers (13 and 14) will never be used to add
-            if (end > 12) {
-                throw new IllegalStateException();
-            }
+            int start = getStartBound();
+            int end = getEndBound();
 
             // start and end are inclusive
             if (toAdd.toString().equals("WILD")) {
@@ -151,10 +138,10 @@ public class MiddlePile {
                 return true;
             }
             int num = toAdd.getNum();
-            if (start != 1 && num < start) { // beginning is available
+            if (start != 1 && num == start - 1) { // beginning is available
                 if (add) cards.add(0, toAdd); // TODO beginning vs end matters for gameplay?
             }
-            else if (end != 12 && num > end) {
+            else if (end != 12 && num == end + 1) {
                 if (add) cards.add(toAdd);
             }
             else {
@@ -163,6 +150,31 @@ public class MiddlePile {
             return true;
         }
         throw new IllegalStateException(); // should've returned by this point
+    }
+
+    public int getStartBound() {
+        if (!(rule instanceof NumberRun)) throw new UnsupportedOperationException();
+        // find the bounds of the pile
+        int first = getIndexOfFirstNormalCard();
+        // this the amount wilds that go before the number. calculate what the first wild's number actually is
+        int start = getFirstNormalCard().getNum() - first;
+        if (start < 1) {
+            throw new IllegalStateException();
+        }
+        return start;
+    }
+
+    public int getEndBound() {
+        if (!(rule instanceof NumberRun)) throw new UnsupportedOperationException();
+        int last = getIndexOfLastNormalCard();
+        // this is the index before any possible wild cards
+        int remaining = cards.size() - 1 - last; // find remaining wild cards
+        int end = getLastNormalCard().getNum() + remaining;
+        // wild and skip card numbers (13 and 14) will never be used to add
+        if (end > 12) {
+            throw new IllegalStateException();
+        }
+        return last;
     }
 
     public LinkedList<Card> getCards() {

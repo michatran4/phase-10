@@ -3,6 +3,7 @@ import java.util.*;
 import cards.*;
 import phases.*;
 import turns.Turn;
+import turns.TurnValidator;
 
 public class PhaseTen {
     private final Set<String> skipped; // names of players that are currently skipping
@@ -15,6 +16,7 @@ public class PhaseTen {
     private PlayerManager playerManager;
     private MiddlePileManager middlePileManager;
     private final boolean DEBUGGING;
+    private final TurnValidator turnValidator;
     //TODO make sure piles aren't empty, else flip
 
     public PhaseTen(boolean b) {
@@ -25,6 +27,7 @@ public class PhaseTen {
         initPiles();
         drawPile.shuffle();
         initPlayers();
+        turnValidator = new TurnValidator(b);
         //startGame();
         DEBUGGING = b;
     }
@@ -118,8 +121,11 @@ public class PhaseTen {
                     CPUDeck deck = (CPUDeck) deckManager.get(player);
                     if (hitting.contains(player)) {
                         Turn turn = deck.getNextTurn(middlePileManager);
-                        // TODO do something with turns, they contain cards
-                        //  that cannot be lost
+                        if (!(turnValidator.validate(turn,
+                                phases.getPhase(playerManager.getPhase(player))))) {
+                            throw new IllegalStateException();
+                        }
+                        // TODO add the dropped hit and discard cards
                     }
                     else {
                         Turn turn = deck.getNextTurn(phases.getPhase(playerManager.getPhase(player)));
@@ -128,7 +134,12 @@ public class PhaseTen {
                             hitting.add(player);
                             hit = deck.getNextTurn(middlePileManager);
                         }
+                        if (!(turnValidator.validate(turn,
+                                phases.getPhase(playerManager.getPhase(player))))) {
+                            throw new IllegalStateException();
+                        }
 
+                        // TODO add the dropped hit and discard cards
                     }
                 }
                 else {

@@ -22,6 +22,11 @@ public class PlayerDeck {
         size++;
     }
 
+    /**
+     * Remove card, for the GUI functionality.
+     * @param card the card, deciphered from the clicked button's logic
+     * @return the removed card
+     */
     public Card removeCard(Card card) {
         if (!deck.containsKey(card)) throw new IllegalArgumentException();
         int count = deck.get(card);
@@ -79,6 +84,21 @@ public class PlayerDeck {
         }
         prune();
         size -= count;
+        return removed;
+    }
+
+    public LinkedList<Card> removeCardsWithNum(int number) {
+        LinkedList<Card> removed = new LinkedList<>();
+        for (Card card: deck.keySet()) {
+            if (card.getNum() == number) {
+                while (deck.get(card) != 0) { // exhaust card supply
+                    deck.put(card, deck.get(card) - 1);
+                    removed.add(card);
+                }
+            }
+        }
+        prune();
+        size -= removed.size();
         return removed;
     }
 
@@ -141,6 +161,22 @@ public class PlayerDeck {
         }
         prune();
         size -= count;
+        return removed;
+    }
+
+    public LinkedList<Card> removeCardsWithColor(String color) {
+        LinkedList<Card> removed = new LinkedList<>();
+        for (Card card: deck.keySet()) {
+            if (card.getColor() == null) continue;
+            if (card.getColor().equals(color)) {
+                while (deck.get(card) != 0) { // exhaust card supply
+                    deck.put(card, deck.get(card) - 1);
+                    removed.add(card);
+                }
+            }
+        }
+        prune();
+        size -= removed.size();
         return removed;
     }
 

@@ -7,6 +7,11 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.TreeMap;
 
+/**
+ * The CPU deck extends the player deck with CPU moves.
+ * This deck should never directly modify the count of the cards in the deck.
+ * Instead, it should be using remove methods.
+ */
 public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
     // TODO Debugging and print
     public final Map<Card, Integer> deck;
@@ -197,7 +202,8 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
 
     private Card getDiscardCard() {
         Card discard = null;
-        if (deck.size() == 1) {
+        if (deck.size() == 0) throw new IllegalStateException();
+        if (deck.size() == 1) { // one type of card
             for (Card card: deck.keySet()) {
                 discard = card;
                 break;
@@ -259,26 +265,47 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
     public Turn getNextTurn(MiddlePileManager middlePileManager) {
         // TODO test
         LinkedList<Card> hit = new LinkedList<>();
-        // TODO use a histogram?
-        for (Card card: deck.keySet()) {
-            for (MiddlePile middlePile: middlePileManager.getMiddlePiles()) {
-                if (middlePile.addCard(card, false)) { // successful add
-                    if (middlePile.getRule() instanceof NumberRun) {
-                        // special case, check multiple of the same card
-                        int extra = 0; // how many more of the card to add,
-                        // try with (extra + 1)
-
-                        // TODO make sure it keeps one remaining card to discard
+        for (MiddlePile middlePile: middlePileManager.getMiddlePiles()) {
+            if (getSize() == 1) break;
+            if (middlePile.getRule() instanceof NumberRun) {
+                int start = middlePile.getStartBound();
+                int end = middlePile.getEndBound();
+                // add with a loop to each middle pile
+                while (start > 1 && getSize() > 1) { // start is at least 2
+                    LinkedList<Card> removed = removeCardsWithNum(start - 1, 1);
+                    if (removed.size() == 1) {
+                        hit.addAll(removed);
+                        start--;
                     }
-                    else { // add all the cards that are the same, typical case
-
-                        // TODO make sure it keeps one remaining card to discard
+                    else {
+                        break;
+                    }
+                }
+                while (end < 12 && getSize() > 1) { // end is at most 11
+                    LinkedList<Card> removed = removeCardsWithNum(end + 1, 1);
+                    if (removed.size() == 1) {
+                        hit.addAll(removed);
+                        end++;
+                    }
+                    else {
+                        break;
                     }
                 }
             }
-
+            else { // add all the cards that are the same, typical case
+                Card normal = middlePile.getFirstNormalCard();
+                if (middlePile.getRule() instanceof ColorSet) {
+                    hit.addAll(removeCardsWithColor(normal.getColor()));
+                }
+                if (middlePile.getRule() instanceof NumberSet) {
+                    hit.addAll(removeCardsWithNum(normal.getNum()));
+                }
+                if (deck.size() == 0) {
+                    addCard(hit.poll());
+                }
+            }
         }
-        // TODO discard
+
         Card discard = getDiscardCard();
         deck.remove(discard);
         return new Turn(null, discard, hit);

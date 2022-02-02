@@ -4,6 +4,8 @@ import javax.swing.text.Document;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class GUI {
     private final Color bgColor = new Color(2, 48, 32);
@@ -19,9 +21,10 @@ public class GUI {
 
     private JFrame frame;
     private JPanel boardPanel, menuPanel; //main parent panels
-    private JPanel topPanel, leftPanel, rightPanel, botPanel; //player panels
+    private JPanel topPanel, leftPanel, rightPanel, botPanel, playerCardPanel; //player panels
     private JPanel centerPanel, centerLeftPanel, centerRightPanel; //center panel
-    private JButton drawPile, discardPile;
+    private cardButton drawPile, discardPile; //cardButton is a class that extends JButton
+    private JButton setButton, hitButton;
     private JTextPane scoreboard;
 
     //Basic setup of the frame container, panels, card piles (buttons)
@@ -80,34 +83,7 @@ public class GUI {
     private void setupMenu()
     {
         //Setup scoreboard
-        //FUTURE NOTE: "00" needs to be replaced with actual scores.
         scoreboard = new JTextPane();
-        Font font = new Font("Dialog", Font.PLAIN, 20);
-        scoreboard.setFont(font);
-
-        SimpleAttributeSet attributeSet = new SimpleAttributeSet();
-        scoreboard.setCharacterAttributes(attributeSet, true);
-        Document doc = scoreboard.getStyledDocument();
-        try
-        {
-            StyleConstants.setFontSize(attributeSet, 28);
-            StyleConstants.setBold(attributeSet, true);
-            StyleConstants.setItalic(attributeSet, true);
-            StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
-            doc.insertString(doc.getLength(), ("Scoreboard\n\n"), attributeSet);
-
-            attributeSet = new SimpleAttributeSet();
-            StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
-            StyleConstants.setFontSize(attributeSet, 18);
-            doc.insertString(doc.getLength(), ("Player 1: " + "00\n\n"), attributeSet);
-            doc.insertString(doc.getLength(), ("Player 2: " + "00\n\n"), attributeSet);
-            doc.insertString(doc.getLength(), ("Player 3: " + "00\n\n"), attributeSet);
-            doc.insertString(doc.getLength(), ("Player 4: " + "00\n\n"), attributeSet);
-        }
-        catch (BadLocationException e)
-        {
-            System.err.println("Could not insert such text into scoreboard");
-        }
 
         //Setup Instructions
         JLabel instructions = new JLabel();
@@ -129,15 +105,15 @@ public class GUI {
 
         botPanel = new JPanel(); //Contains Player 1, aka person playing
         botPanel.setBackground(bgColor);
-        botPanel.setPreferredSize(new Dimension(top_botPanelWidth, top_botPanelHeight));
-        botPanel.setBorder(BorderFactory.createEmptyBorder(0, 170, 30, 170));
-        botPanel.setLayout(new GridLayout(1, 10, 15, 0));
+        botPanel.setPreferredSize(new Dimension(top_botPanelWidth, (top_botPanelHeight+40)));
+        botPanel.setLayout(new BorderLayout());
+        setupBotPanel(top_botPanelWidth, (top_botPanelHeight+40));
 
         topPanel = new JPanel(); //Contains Player 3 cards, CPU
         topPanel.setBackground(bgColor);
-        topPanel.setPreferredSize(new Dimension(top_botPanelWidth, top_botPanelHeight));
-        topPanel.setBorder(BorderFactory.createEmptyBorder(40, 170, 0, 170));
-        topPanel.setLayout(new GridLayout(1,10, 15, 0));
+        topPanel.setPreferredSize(new Dimension(top_botPanelWidth, (top_botPanelHeight-40)));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(20, 290, 0, 290));
+        topPanel.setLayout(new GridLayout(1,10, 20, 0));
 
         rightPanel = new JPanel(); //Contains Player 2 cards, CPU
         rightPanel.setBackground(bgColor);
@@ -162,6 +138,48 @@ public class GUI {
         boardPanel.add(centerPanel, BorderLayout.CENTER);
     }
 
+    //bottom panel, aka player panel, consists of 2 sub panels: playerButtonPanel = top, playerCardPanel = bot
+    private void setupBotPanel(int panelWidth, int panelHeight)
+    {
+        //setup top row, playerButtonPanel
+        JPanel playerButtonPanel = new JPanel();
+        playerButtonPanel.setPreferredSize(new Dimension(panelWidth, (int)(panelHeight*.1)));
+        playerButtonPanel.setBackground(bgColor);
+        playerButtonPanel.setLayout(new GridLayout(1,10));
+
+        for(int i = 0; i < 3; i++)
+        {
+            JPanel emptyCell = new JPanel();
+            emptyCell.setBackground(bgColor);
+            playerButtonPanel.add(emptyCell);
+        }
+        setButton = new JButton("Complete");
+        playerButtonPanel.add(setButton);
+        for(int i = 0; i < 2; i++)
+        {
+            JPanel emptyCell = new JPanel();
+            emptyCell.setBackground(bgColor);
+            playerButtonPanel.add(emptyCell);
+        }
+        hitButton = new JButton("Hit");
+        playerButtonPanel.add(hitButton);
+        for(int i = 0; i < 3; i++)
+        {
+            JPanel emptyCell = new JPanel();
+            emptyCell.setBackground(bgColor);
+            playerButtonPanel.add(emptyCell);
+        }
+
+        //setup bot row, playerCardPanel
+        playerCardPanel = new JPanel();
+        playerCardPanel.setBackground(bgColor);
+
+        botPanel.add(playerButtonPanel, BorderLayout.NORTH);
+        botPanel.add(playerCardPanel, BorderLayout.SOUTH);
+
+
+    }
+
     //NOTE: centerPanel contains 2 more JPanels; Left = discard and draw piles, Right = completed phase sets
     private void setupCenterPanel()
     {
@@ -172,12 +190,14 @@ public class GUI {
         int vgap = (int)(boardSize.getHeight()/6); //distance from top and bottom of centerPanel
         centerLeftPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 50, vgap));
 
-        drawPile = new JButton(cardBack0);
+        drawPile = new cardButton(cardBack0);
+        drawPile.setBorder(BorderFactory.createEmptyBorder());
         drawPile.setPreferredSize(new Dimension(cardWidth,cardHeight));
         centerLeftPanel.add(drawPile);
 
         //FUTURE NOTE: actual card displayed should be determined after integration
-        discardPile = new JButton();
+        discardPile = new cardButton();
+        discardPile.setBorder(BorderFactory.createEmptyBorder());
         discardPile.setPreferredSize(new Dimension(cardWidth,cardHeight));
         centerLeftPanel.add(discardPile);
 
@@ -193,16 +213,69 @@ public class GUI {
     //at beginning of each new round deal new cards and new draw/discard pile
     public void newRound()
     {
+        //Scoreboard
+        updateScore();
+
         //Player cards
         deal();
 
         //Discard pile
+        //NOTE: To be integrated
         Icon card = new ImageIcon("yellow three.png");
         discardPile.setIcon(card);
+
+        //Completed Sets Area
+        updateSetArea();
+
+    }
+
+    private void updateScore()
+    {
+        //Replace 0's with actual scores from logic branch
+        int p1 = 0;
+        int p2 = 0;
+        int p3 = 0;
+        int p4 = 0;
+        int phase = 1; // <-- phase should be what round, ask michael
+
+        Font font = new Font("Dialog", Font.PLAIN, 20);
+        scoreboard.setFont(font);
+
+        SimpleAttributeSet attributeSet = new SimpleAttributeSet();
+        scoreboard.setCharacterAttributes(attributeSet, true);
+        Document doc = scoreboard.getStyledDocument();
+        try
+        {
+            StyleConstants.setFontSize(attributeSet, 40);
+            StyleConstants.setBold(attributeSet, true);
+            StyleConstants.setUnderline(attributeSet, true);
+            StyleConstants.setFontFamily(attributeSet, "Magneto");
+            StyleConstants.setForeground(attributeSet, Color.BLUE);
+            doc.insertString(doc.getLength(), ("Phase : " + phase + "\n"), attributeSet);
+
+            attributeSet = new SimpleAttributeSet();
+            StyleConstants.setFontSize(attributeSet, 28);
+            StyleConstants.setBold(attributeSet, true);
+            StyleConstants.setItalic(attributeSet, true);
+            StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
+            doc.insertString(doc.getLength(), ("Scoreboard\n\n"), attributeSet);
+
+            attributeSet = new SimpleAttributeSet();
+            StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
+            StyleConstants.setFontSize(attributeSet, 18);
+            doc.insertString(doc.getLength(), ("Player 1: " + p1 + "\n\n"), attributeSet);
+            doc.insertString(doc.getLength(), ("Player 2: " + p2 + "\n\n"), attributeSet);
+            doc.insertString(doc.getLength(), ("Player 3: " + p3 + "\n\n"), attributeSet);
+            doc.insertString(doc.getLength(), ("Player 4: " + p4 + "\n\n"), attributeSet);
+        }
+        catch (BadLocationException e)
+        {
+            System.err.println("Could not insert such text into scoreboard");
+        }
     }
 
     //at the start of each set 10 cards (buttons) get added to the player panels
-    public void deal()
+    private void deal()
     {
         //CPU CARDS, all should be card backs, player should not be able to see other cards
         int sideWidth = (int)(cardHeight*.4);
@@ -210,40 +283,104 @@ public class GUI {
         ImageIcon rightCard = new ImageIcon(cardBack270.getImage().getScaledInstance(sideWidth, sideHeight, Image.SCALE_DEFAULT));
         ImageIcon leftCard = new ImageIcon(cardBack90.getImage().getScaledInstance(sideWidth, sideHeight, Image.SCALE_DEFAULT));
 
-        int tbWidth = (int)(cardWidth*.75);
-        int tbHeight = (int)(cardHeight*.75);
-        ImageIcon topCard = new ImageIcon(cardBack180.getImage().getScaledInstance(tbWidth, tbHeight, Image.SCALE_DEFAULT));
-        ImageIcon botCard = new ImageIcon(cardBack0.getImage().getScaledInstance(tbWidth, tbHeight, Image.SCALE_DEFAULT));
+        int topWidth = (int)(cardWidth*.6);
+        int topHeight = (int)(cardHeight*.6);
+        ImageIcon topCard = new ImageIcon(cardBack180.getImage().getScaledInstance(topWidth, topHeight, Image.SCALE_DEFAULT));
 
         //CPU CARDS, all should be card backs, player should not be able to see other cards
         //Right Panel
         for(int i = 0; i < 10; i++)
         {
-            JButton card = new JButton(rightCard);
-            card.setPreferredSize(new Dimension(cardHeight, cardWidth));
+            cardButton card = new cardButton(rightCard);
+            card.setBorder(BorderFactory.createEmptyBorder());
+            card.setPreferredSize(new Dimension(sideWidth, sideHeight));
             rightPanel.add(card);
         }
         //Top Panel Cards
         for(int i = 0; i < 10; i++)
         {
-            JButton card = new JButton(topCard);
-            card.setPreferredSize(new Dimension(cardWidth, cardHeight));
+            cardButton card = new cardButton(topCard);
+            card.setBorder(BorderFactory.createEmptyBorder());
+            card.setPreferredSize(new Dimension(topWidth, topHeight));
             topPanel.add(card);
         }
         //Left Panel
         for(int i = 0; i < 10; i++)
         {
-            JButton card = new JButton(leftCard);
-            card.setPreferredSize(new Dimension(cardHeight, cardWidth));
+            cardButton card = new cardButton(leftCard);
+            card.setBorder(BorderFactory.createEmptyBorder());
+            card.setPreferredSize(new Dimension(sideWidth, sideHeight));
             leftPanel.add(card);
         }
 
         //Bot Panel Cards, PLAYER
+        dealPlayerCards();
+
+    }
+
+    //Helper method to set up player panel (botPanel)
+    //Player panel consists of 2 rows, Top = buttons, bot = cards
+    private void dealPlayerCards()
+    {
+        int cWidth = (int)(cardWidth*.9);
+        int cHeight = (int)(cardHeight*.9);
+        //Bottom row: cards
         for(int i = 0; i < 10; i++)
         {
-            JButton card = new JButton();
-            card.setPreferredSize(new Dimension(cardWidth, cardHeight));
-            botPanel.add(card);
+            cardButton card = new cardButton();
+            card.setBorder(BorderFactory.createEmptyBorder());
+            card.setPreferredSize(new Dimension(cWidth, cHeight));
+            card.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if(!card.isSelected())
+                    {
+                        card.setBorder(BorderFactory.createLineBorder(Color.RED, 5));
+                        card.select();
+                    }
+                    else
+                    {
+                        card.setBorder(BorderFactory.createEmptyBorder());
+                        card.unselect();
+                    }
+                }
+            });
+            playerCardPanel.add(card);
         }
     }
+
+    private void updateSetArea()
+    {
+        centerRightPanel.removeAll();
+        centerRightPanel.setLayout(new GridLayout(4, 2));
+        //TO BE INTEGRATED, ask michael how to get round
+        /*
+        if(round == 1)
+            centerRightPanel.setLayout(new GridLayout(4, 2));
+        else if(round == 2)
+            centerRightPanel.setLayout(new GridLayout(4, 2));
+        else if(round == 3)
+            centerRightPanel.setLayout(new GridLayout(4, 2));
+        else if(round == 4)
+            centerRightPanel.setLayout(new GridLayout(4, 1));
+        else if(round == 5)
+            centerRightPanel.setLayout(new GridLayout(4, 1));
+        else if(round == 6)
+            centerRightPanel.setLayout(new GridLayout(4, 1));
+        else if(round == 7)
+            centerRightPanel.setLayout(new GridLayout(4, 2));
+        else if(round == 8)
+            centerRightPanel.setLayout(new GridLayout(4, 1));
+        else if(round == 9)
+            centerRightPanel.setLayout(new GridLayout(4, 2));
+        else
+            centerRightPanel.setLayout(new GridLayout(4, 2));
+         */
+
+    }
+
+
+
+
 }
+

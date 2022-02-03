@@ -6,6 +6,7 @@ import javax.swing.text.StyleConstants;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
 public class GUI {
     private final Color bgColor = new Color(2, 48, 32);
@@ -24,12 +25,17 @@ public class GUI {
     private JPanel topPanel, leftPanel, rightPanel, botPanel, playerCardPanel; //player panels
     private JPanel centerPanel, centerLeftPanel, centerRightPanel; //center panel
     private cardButton drawPile, discardPile; //cardButton is a class that extends JButton
-    private JButton setButton, hitButton;
-    private JTextPane scoreboard;
+    private JButton setButton, hitButton; //buttons in botPanel of player usage
+    private JTextPane scoreboard; //side menu text
+    private int round, maxSelect, numSelected, numSetsCompleted; //necessary variables
+    private ArrayList<cardButton> selectedCards;
+    private JPanel[][] completedSetPanels;
 
     //Basic setup of the frame container, panels, card piles (buttons)
     public GUI()
     {
+        round = 0;
+
         //Set up main container frame of all panels
         setupFrame();
 
@@ -213,10 +219,15 @@ public class GUI {
     //at beginning of each new round deal new cards and new draw/discard pile
     public void newRound()
     {
-        //Scoreboard
+        round = round + 1;
+        numSelected = 0;
+        selectedCards = new ArrayList<cardButton>();
+        numSetsCompleted = 0;
+
+        //1) Scoreboard
         updateScore();
 
-        //Player cards
+        //2) Deal the cards
         deal();
 
         //Discard pile
@@ -224,8 +235,8 @@ public class GUI {
         Icon card = new ImageIcon("yellow three.png");
         discardPile.setIcon(card);
 
-        //Completed Sets Area
-        updateSetArea();
+        //Change number of rows/col in completed set area + changes max amount of cards player can select
+        updateSetSettings();
 
     }
 
@@ -236,7 +247,6 @@ public class GUI {
         int p2 = 0;
         int p3 = 0;
         int p4 = 0;
-        int phase = 1; // <-- phase should be what round, ask michael
 
         Font font = new Font("Dialog", Font.PLAIN, 20);
         scoreboard.setFont(font);
@@ -251,7 +261,7 @@ public class GUI {
             StyleConstants.setUnderline(attributeSet, true);
             StyleConstants.setFontFamily(attributeSet, "Magneto");
             StyleConstants.setForeground(attributeSet, Color.BLUE);
-            doc.insertString(doc.getLength(), ("Phase : " + phase + "\n"), attributeSet);
+            doc.insertString(doc.getLength(), ("Phase : " + round + "\n"), attributeSet);
 
             attributeSet = new SimpleAttributeSet();
             StyleConstants.setFontSize(attributeSet, 28);
@@ -318,8 +328,8 @@ public class GUI {
 
     }
 
-    //Helper method to set up player panel (botPanel)
-    //Player panel consists of 2 rows, Top = buttons, bot = cards
+    //Helper method to set up player cards
+    //playerCardPanel = bot panel of botPanel for cards
     private void dealPlayerCards()
     {
         int cWidth = (int)(cardWidth*.9);
@@ -333,15 +343,19 @@ public class GUI {
             card.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    if(!card.isSelected())
+                    if(!(card.isSelected()) && (numSelected < maxSelect))
                     {
                         card.setBorder(BorderFactory.createLineBorder(Color.RED, 5));
                         card.select();
+                        numSelected++;
+                        selectedCards.add(card);
                     }
-                    else
+                    else if(card.isSelected())
                     {
                         card.setBorder(BorderFactory.createEmptyBorder());
                         card.unselect();
+                        numSelected--;
+                        selectedCards.remove(card);
                     }
                 }
             });
@@ -349,33 +363,103 @@ public class GUI {
         }
     }
 
-    private void updateSetArea()
+    //Update changes for every phase: max cards necessary for a set in phase, number of potential completed sets, what phase logic to call when player clicks button(s)
+    private void updateSetSettings()
     {
         centerRightPanel.removeAll();
-        centerRightPanel.setLayout(new GridLayout(4, 2));
-        //TO BE INTEGRATED, ask michael how to get round
+
+        if(round == 1) {
+            int setWidth = (int)(boardSize.getWidth()/2);
+            int setHeight = (int)(boardSize.getWidth()/4);
+
+            updateCenterRightPanel(4, 2, setWidth, setHeight);
+            maxSelect = 3;
+
+            setButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    //NOTE: Call michael's logic if()
+                    System.out.println("completed!");
+                    addCompletedSet(2, setWidth, setHeight);
+                }
+            });
+        }
+        else if(round == 2) {
+            centerRightPanel.setLayout(new GridLayout(4, 2));
+            maxSelect = 4;
+        }
+        else if(round == 3) {
+            centerRightPanel.setLayout(new GridLayout(4, 2));
+            maxSelect = 4;
+        }
+        else if(round == 4) {
+            centerRightPanel.setLayout(new GridLayout(4, 1));
+            maxSelect = 7;
+        }
+        else if(round == 5) {
+            centerRightPanel.setLayout(new GridLayout(4, 1));
+            maxSelect = 8;
+        }
+        else if(round == 6) {
+            centerRightPanel.setLayout(new GridLayout(4, 1));
+            maxSelect = 9;
+        }
+        else if(round == 7) {
+            centerRightPanel.setLayout(new GridLayout(4, 2));
+            maxSelect = 4;
+        }
+        else if(round == 8) {
+            centerRightPanel.setLayout(new GridLayout(4, 1));
+            maxSelect = 7;
+        }
+        else if(round == 9) {
+            centerRightPanel.setLayout(new GridLayout(4, 2));
+            maxSelect = 5;
+        }
+        else {
+            centerRightPanel.setLayout(new GridLayout(4, 2));
+            maxSelect = 5;
+        }
+    }
+
+    private void updateCenterRightPanel(int r, int c, int w, int h)
+    {
+        centerRightPanel.setLayout(new GridLayout(r, c));
+        completedSetPanels = new JPanel[r][c];
+        Color setColor = new Color(255, 255, 255);
+
+        for(int i = 0; i < r; i++)
+        {
+            for(int j = 0; j < c; j++)
+            {
+                JPanel holder = new JPanel();
+                setColor = new Color(255, 255-(i*30), 255-(i*30));
+                holder.setBackground(setColor);
+                holder.setPreferredSize(new Dimension(w, h));
+                completedSetPanels[i][j] = holder;
+                centerRightPanel.add(completedSetPanels[i][j]);
+                System.out.println(i + ", " + j);
+            }
+        }
+    }
+
+    //When player click "Complete" (setButton), method will be called to add it into the completed set area (centerRightPanel)
+    private void addCompletedSet(int col, int w, int h)
+    {
+        JPanel completedSet = new JPanel();
+        completedSet.setBackground(Color.BLACK);
+
         /*
-        if(round == 1)
-            centerRightPanel.setLayout(new GridLayout(4, 2));
-        else if(round == 2)
-            centerRightPanel.setLayout(new GridLayout(4, 2));
-        else if(round == 3)
-            centerRightPanel.setLayout(new GridLayout(4, 2));
-        else if(round == 4)
-            centerRightPanel.setLayout(new GridLayout(4, 1));
-        else if(round == 5)
-            centerRightPanel.setLayout(new GridLayout(4, 1));
-        else if(round == 6)
-            centerRightPanel.setLayout(new GridLayout(4, 1));
-        else if(round == 7)
-            centerRightPanel.setLayout(new GridLayout(4, 2));
-        else if(round == 8)
-            centerRightPanel.setLayout(new GridLayout(4, 1));
-        else if(round == 9)
-            centerRightPanel.setLayout(new GridLayout(4, 2));
-        else
-            centerRightPanel.setLayout(new GridLayout(4, 2));
+        for(int i = 0; i < selectedCards.size(); i++)
+        {
+            completedSet.add(selectedCards.get(i));
+            playerCardPanel.remove(selectedCards.get(i));
+        }
+
          */
+        completedSetPanels[1][1].add(completedSet);
+        System.out.println("added");
+
 
     }
 

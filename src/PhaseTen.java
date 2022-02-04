@@ -1,23 +1,24 @@
-import java.util.*;
-
 import cards.*;
-import phases.*;
+import phases.Phase;
+import phases.PhaseCollection;
+import phases.Rule;
 import turns.Turn;
 import turns.TurnValidator;
+
+import java.util.*;
 
 public class PhaseTen {
     private final Set<String> skipped; // names of players that are currently skipping
     private final Set<String> hitting; // players that have completed the phase
     private final Map<String, Integer> scoreboard;
+    private final boolean DEBUGGING;
+    private final TurnValidator turnValidator;
     private PhaseCollection phases;
     private CardPile drawPile;
     private CardPile discardPile;
     private DeckManager deckManager;
     private PlayerManager playerManager;
     private MiddlePileManager middlePileManager;
-    private final boolean DEBUGGING;
-    private final TurnValidator turnValidator;
-    //TODO make sure piles aren't empty, else flip
 
     public PhaseTen(boolean b) {
         skipped = new HashSet<>();
@@ -28,8 +29,8 @@ public class PhaseTen {
         drawPile.shuffle();
         initPlayers();
         turnValidator = new TurnValidator(b);
-        //startGame();
         DEBUGGING = b;
+        startGame();
     }
 
     private void initPhaseCollection() {
@@ -43,33 +44,28 @@ public class PhaseTen {
     private void initPiles() {
         drawPile = new CardPile(true);
         for (int num = 1; num <= 12; num++) {
-            for (String color: new String[] {"RED", "BLUE", "YELLOW", "GREEN"}) {
+            for (String color: new String[]{"RED", "BLUE", "YELLOW", "GREEN"}) {
                 for (int i = 0; i < 2; i++) {
-                    drawPile.addCard(new Card(num, color));
+                    drawPile.add(new Card(num, color));
                 }
             }
         }
         for (int i = 0; i < 4; i++) {
-            drawPile.addCard(new Card("SKIP"));
+            drawPile.add(new Card("SKIP"));
         }
         for (int i = 0; i < 8; i++) {
-            drawPile.addCard(new Card("WILD"));
+            drawPile.add(new Card("WILD"));
         }
         discardPile = new CardPile(false);
         middlePileManager = new MiddlePileManager();
     }
 
     private void initPlayers() {
-        PlayerDeck playerDeck = new PlayerDeck(); // TODO instead of a player class wait for the discard pile to be added to
-        CPUDeck cpuDeck1 = new CPUDeck();
-        CPUDeck cpuDeck2 = new CPUDeck();
-        CPUDeck cpuDeck3 = new CPUDeck();
-
         deckManager = new DeckManager();
-        deckManager.put("Player 1", playerDeck);
-        deckManager.put("CPU 1", cpuDeck1);
-        deckManager.put("CPU 2", cpuDeck2);
-        deckManager.put("CPU 3", cpuDeck3);
+        deckManager.put("Player 1", new PlayerDeck());
+        deckManager.put("CPU 1", new CPUDeck());
+        deckManager.put("CPU 2", new CPUDeck());
+        deckManager.put("CPU 3", new CPUDeck());
 
         playerManager = new PlayerManager();
         playerManager.add("Player 1");
@@ -77,6 +73,13 @@ public class PhaseTen {
         playerManager.add("CPU 2");
         playerManager.add("CPU 3");
 
+        dealCards();
+        if (DEBUGGING) {
+            System.out.println(deckManager.toString());
+        }
+    }
+
+    private void dealCards() {
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < playerManager.getNumPlayers(); j++) {
                 String player = playerManager.getNextPlayer();
@@ -84,23 +87,28 @@ public class PhaseTen {
                 playersDeck.addCard(drawPile.pop());
             }
         }
-        if (DEBUGGING) {
-            System.out.println(deckManager.toString());
-        }
-        discardPile.addCard(drawPile.pop());
     }
 
     private void startGame() {
+        discardPile.add(drawPile.pop());
+        if (discardPile.peek().equals("SKIP")) {
+            skipped.add(playerManager.peek());
+        }
         while (true) {
             play();
+            updateScores();
             if (playerManager.checkPhases()) {
                 System.out.println("WINNER");
                 break;
             }
-            updateScores();
             if (DEBUGGING) {
                 System.out.println(getScoreboard());
             }
+            playerManager.getNextPlayer(); // dealer rotates clockwise
+            // deal new cards
+            deckManager.clearDecks();
+            initPiles();
+            dealCards();
         }
     }
 
@@ -109,47 +117,105 @@ public class PhaseTen {
      */
     private void play() {
         while (!deckManager.checkDecks()) { // while none are empty for the round
-            for (int i = 0; i < playerManager.getNumPlayers(); i++) {
+            for (int num = 0; num < playerManager.getNumPlayers(); num++) {
                 String player = playerManager.getNextPlayer();
-                // TODO if piles are bad
+                if (drawPile.isEmpty()) {
+                    drawPile.addAll(discardPile.getPile());
+                    discardPile.clear();
+                }
                 if (skipped.contains(player)) {
                     skipped.remove(player);
                     continue;
                 }
                 if (player.contains("CPU")) {
-                    // TODO cpu artificial moves and integrate with GUI
+                    Phase phase =
+                            phases.getPhase(playerManager.getPhase(player));
                     CPUDeck deck = (CPUDeck) deckManager.get(player);
+                    // CPU automatically draws from the draw pile
+                    deck.addCard(drawPile.pop());
+                    // TODO don't do this if you can implement an algorithm
+                    Turn turn;
                     if (hitting.contains(player)) {
-                        Turn turn = deck.getNextTurn(middlePileManager);
-                        if (!(turnValidator.validate(turn,
-                                phases.getPhase(playerManager.getPhase(player))))) {
+                        turn = deck.getNextTurn(middlePileManager);
+                        if (!(turnValidator.validate(turn, phase))) {
                             throw new IllegalStateException();
                         }
-                        // TODO add the dropped hit and discard cards
+                        addHitsAndDiscard(turn);
                     }
                     else {
-                        Turn turn = deck.getNextTurn(phases.getPhase(playerManager.getPhase(player)));
-                        Turn hit;
+                        turn = deck.getNextTurn(phase);
+                        Turn hit = null;
                         if (turn.getDroppedCards().size() != 0) {
                             hitting.add(player);
                             hit = deck.getNextTurn(middlePileManager);
                         }
-                        if (!(turnValidator.validate(turn,
-                                phases.getPhase(playerManager.getPhase(player))))) {
+                        if (!(turnValidator.validate(turn, phase))) {
                             throw new IllegalStateException();
                         }
 
-                        // TODO add the dropped hit and discard cards
+                        if (turn.getDroppedCards() != null) {
+                            LinkedList<Card> dropped = turn.getDroppedCards();
+                            for (Rule rule: phase.getRules()) {
+                                for (int i = 0; i < rule.getCount(); i++) {
+                                    // sets can be at least one
+                                    LinkedList<Card> middle =
+                                            new LinkedList<>();
+                                    for (int j = 0; j < rule.getNumCards(); j++) {
+                                        middle.add(dropped.poll());
+                                        // all are in order
+                                    }
+                                    MiddlePile pile = new MiddlePile(middle,
+                                            rule);
+                                    middlePileManager.addMiddlePile(pile);
+                                }
+                            }
+                            if (dropped.size() != 0) {
+                                throw new IllegalStateException();
+                            }
+                        }
+                        addHitsAndDiscard(Objects.requireNonNullElse(hit, turn));
+                    }
+                    if (turn.getDiscardCard().toString().equals("SKIP")) {
+                        skipped.add(findSmallestDeck(player));
                     }
                 }
                 else {
-                    // TODO integrate with GUI,
-                    //  check if it's the correct phase
+                    // TODO integrate with GUI, check correct phase
+                    //  unable to draw skip cards from the discard pile
+                    //  validate hits too
                 }
             }
         }
-        // TODO scoring and fixing piles
-        // TODO reset sets
+        hitting.clear();
+    }
+
+    /**
+     * @param exclude the current active turn, should not skip this player
+     * @return the two players with the smallest decks.
+     */
+    private String findSmallestDeck(String exclude) {
+        TreeMap<Integer, String> map = new TreeMap<>();
+        for (String player: playerManager.getPlayers()) {
+            if (player.equals(exclude)) continue;
+            map.put(deckManager.get(player).getSize(), player);
+        }
+        String[] sorted = map.values().toArray(new String[0]);
+        return sorted[0];
+    }
+
+    private void addHitsAndDiscard(Turn turn) {
+        for (Card card: turn.getHitCards()) {
+            boolean found = false;
+            for (MiddlePile pile:
+                    middlePileManager.getMiddlePiles()) {
+                if (pile.addCard(card, true)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) throw new IllegalStateException();
+        }
+        discardPile.add(turn.getDiscardCard());
     }
 
     /**
@@ -159,7 +225,10 @@ public class PhaseTen {
         boolean hasWinner = false; // temporary check where one should have added 0
         for (String player: playerManager.getPlayers()) {
             int score = deckManager.get(player).getScore();
-            if (score == 0) hasWinner = true;
+            if (score == 0) {
+                playerManager.incrementPhase(player);
+                hasWinner = true;
+            }
             scoreboard.put(player, scoreboard.get(player) + score);
         }
         if (!hasWinner) throw new IllegalStateException();

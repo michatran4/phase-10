@@ -6,6 +6,7 @@ import java.util.Queue;
 public class PlayerManager {
     private final Queue<String> playerList;
     private final Map<String, Integer> phaseMap;
+
     public PlayerManager() {
         playerList = new LinkedList<>();
         phaseMap = new HashMap<>();
@@ -13,6 +14,7 @@ public class PlayerManager {
 
     /**
      * Adds a player to the queue.
+     *
      * @param name the player name
      */
     public void add(String name) {
@@ -45,6 +47,7 @@ public class PlayerManager {
 
     /**
      * Returns the provided player's current phase.
+     *
      * @param name the player to check
      * @return the phase number
      */
@@ -66,6 +69,7 @@ public class PlayerManager {
 
     /**
      * Advances a player to the next phase.
+     *
      * @param name the player name
      */
     public void incrementPhase(String name) {
@@ -76,7 +80,9 @@ public class PlayerManager {
     }
 
     /**
-     * Gets players when no rounds are in progress, for score checking and the queue is unnecessary.
+     * Gets players when no rounds are in progress, for score checking and the
+     * queue is unnecessary.
+     *
      * @return the players, as an array
      */
     public String[] getPlayers() {

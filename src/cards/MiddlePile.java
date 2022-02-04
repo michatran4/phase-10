@@ -1,6 +1,9 @@
 package cards;
 
-import phases.*;
+import phases.ColorSet;
+import phases.NumberRun;
+import phases.NumberSet;
+import phases.Rule;
 
 import java.util.LinkedList;
 
@@ -63,28 +66,10 @@ public class MiddlePile {
     }
 
     /**
-     * Test add to a middle pile that is a number run.
-     * Sets have an infinite amount of cards that can be added, while number
-     * runs have bounds. Therefore, number runs need to be checked.
-     * @param add the cards that are to be added, to set up the test case
-     * @param toAdd the card duplicate to be added
-     * @return if the card can be added
-     */
-    public boolean testAddNumberRun(LinkedList<Card> add, Card toAdd) { // TODO test
-        if (!(rule instanceof NumberRun)) {
-            throw new IllegalStateException("Method was called incorrectly.");
-        }
-
-        LinkedList<Card> test = new LinkedList<>(cards);
-        // TODO add modified number run logic from addCard method
-        // add variable should not be considered because test is a duplicate?
-        return true;
-    }
-
-    /**
      * Add a card to the middle pile.
+     *
      * @param toAdd card to add
-     * @param add add the card to pile, or if it's just a peek test
+     * @param add   add the card to pile, or if it's just a peek test
      * @return if the card was added successfully (or addable)
      */
     public boolean addCard(Card toAdd, boolean add) { // TODO test
@@ -139,7 +124,8 @@ public class MiddlePile {
             }
             int num = toAdd.getNum();
             if (start != 1 && num == start - 1) { // beginning is available
-                if (add) cards.add(0, toAdd); // TODO beginning vs end matters for gameplay?
+                if (add) cards.add(0, toAdd);
+                // TODO beginning vs end matters for gameplay?
             }
             else if (end != 12 && num == end + 1) {
                 if (add) cards.add(toAdd);
@@ -153,7 +139,8 @@ public class MiddlePile {
     }
 
     public int getStartBound() {
-        if (!(rule instanceof NumberRun)) throw new UnsupportedOperationException();
+        if (!(rule instanceof NumberRun))
+            throw new UnsupportedOperationException();
         // find the bounds of the pile
         int first = getIndexOfFirstNormalCard();
         // this the amount wilds that go before the number. calculate what the first wild's number actually is
@@ -165,7 +152,8 @@ public class MiddlePile {
     }
 
     public int getEndBound() {
-        if (!(rule instanceof NumberRun)) throw new UnsupportedOperationException();
+        if (!(rule instanceof NumberRun))
+            throw new UnsupportedOperationException();
         int last = getIndexOfLastNormalCard();
         // this is the index before any possible wild cards
         int remaining = cards.size() - 1 - last; // find remaining wild cards
@@ -175,10 +163,6 @@ public class MiddlePile {
             throw new IllegalStateException();
         }
         return last;
-    }
-
-    public LinkedList<Card> getCards() {
-        return cards;
     }
 
     public Rule getRule() {

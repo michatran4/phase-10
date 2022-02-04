@@ -7,7 +7,8 @@ public class NumberSet extends Rule {
     public NumberSet(int count, int cards) {
         super(count, cards);
     }
+
     public String toString() {
-        return String.format("%d %s of %d", getCount(), getCount() > 1? "sets":"set", getNumCards());
+        return String.format("%d %s of %d", getCount(), getCount() > 1 ? "sets" : "set", getNumCards());
     }
 }

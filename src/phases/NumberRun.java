@@ -8,6 +8,7 @@ public class NumberRun extends Rule {
     public NumberRun(int count, int cards) {
         super(count, cards);
     }
+
     public String toString() {
         return String.format("%d run of %d", getCount(), getNumCards());
     }

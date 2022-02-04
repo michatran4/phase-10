@@ -40,12 +40,12 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
      * Find cards that match the phase, and make sure it has at least one
      * discard card remaining. If there are no excess cards, then do not play
      * the phase.
-     *
+     * <p>
      * If there is one remaining card, then that is the discard card.
      * Else, the default discard card is a skip card.
      * Else, find a card that is one of a kind.
      * Else, discard a card at random.
-     *
+     * <p>
      * This turn should have no hit cards; it should be determined in
      * external logic.
      *
@@ -177,7 +177,7 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
                                 // runs are always the last rule
                                 dropped.addAll(
                                         removeCardsWithNum(foundNum + i,
-                                        1));
+                                                1));
                             }
                             else {
                                 dropped.addAll(
@@ -255,7 +255,7 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
      * cards.
      * However, this can be managed by having a list of checked and unchecked
      * cards until the middle pile count changes.
-     *
+     * <p>
      * This turn has no dropped cards.
      *
      * @param middlePileManager all the middle piles

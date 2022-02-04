@@ -8,12 +8,14 @@ import java.util.TreeMap;
 
 public class TestPrune {
     private final Map<Integer, Integer> map;
+
     public TestPrune() {
         map = new TreeMap<>();
         map.put(1, 0);
         map.put(2, 1);
         map.put(3, 0);
     }
+
     @Test
     public void test() {
         try {
@@ -24,7 +26,8 @@ public class TestPrune {
             }
             throw new IllegalStateException("Should have one value of 0.");
         }
-        catch (ConcurrentModificationException ignored) {}
+        catch (ConcurrentModificationException ignored) {
+        }
         // while (map.values().remove(0));
     }
 }

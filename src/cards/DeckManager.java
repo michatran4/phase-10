@@ -39,4 +39,15 @@ public class DeckManager {
         }
         return output.toString();
     }
+
+    public void clearDecks() {
+        for (String player: deckMap.keySet()) {
+            if (player.contains("CPU")) {
+                deckMap.put(player, new CPUDeck());
+            }
+            else {
+                deckMap.put(player, new PlayerDeck());
+            }
+        }
+    }
 }

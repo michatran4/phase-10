@@ -52,10 +52,6 @@ public class PhaseCollection {
         phases.add(nine);
     }
 
-    public void addPhase(Phase phase) {
-        phases.add(phase);
-    }
-
     /**
      * @param phase the rule number
      * @return the rules for a phase

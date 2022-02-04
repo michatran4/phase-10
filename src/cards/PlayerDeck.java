@@ -24,6 +24,7 @@ public class PlayerDeck {
 
     /**
      * Remove card, for the GUI functionality.
+     *
      * @param card the card, deciphered from the clicked button's logic
      * @return the removed card
      */
@@ -45,13 +46,14 @@ public class PlayerDeck {
      * Tested in TestPrune.java
      */
     private void prune() {
+        //noinspection StatementWithEmptyBody
         while (deck.values().remove(0)) ;
     }
 
     /**
      * Remove cards with a specific number after being calculated with the
      * histogram in the CPUDeck.
-     *
+     * <p>
      * This is for number sets, and only removes the number cards.
      *
      * @param number the number to match
@@ -127,11 +129,11 @@ public class PlayerDeck {
     /**
      * Remove cards with a specific color after being calculated with the
      * color histogram in the CPUDeck.
-     *
+     * <p>
      * This is for color sets.
      *
      * @param color the color to match
-     * @param count  how many color sets
+     * @param count how many color sets
      * @return the removed cards
      */
     public LinkedList<Card> removeCardsWithColor(String color, int count) {
@@ -201,7 +203,7 @@ public class PlayerDeck {
     }
 
     /**
-     * Clear the deck when a round ends. TODO double check
+     * Clear the deck when a round ends.
      */
     public void clear() {
         deck.clear();

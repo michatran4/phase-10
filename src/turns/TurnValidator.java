@@ -35,7 +35,7 @@ public class TurnValidator {
      * where number sets and runs are together.
      * However, this is taken care of by removing the cards after they are checked.
      *
-     * @param turn the turn to validate
+     * @param turn  the turn to validate
      * @param phase the phase to check with
      * @return if the turn is valid
      */
@@ -179,7 +179,7 @@ public class TurnValidator {
                     if (c.toString().equals("WILD")) {
                         wildCards--;
                     }
-                    else if (!(c.getColor().equals(normal.getColor()))){
+                    else if (!(c.getColor().equals(normal.getColor()))) {
                         return false;
                     }
                 }
@@ -201,7 +201,8 @@ public class TurnValidator {
      * Validates cards that are hit on to the middle piles.
      * Do not validate the CPU deck's moves, because it will have to add
      * preceding cards to runs, and that ruins the point of validation.
-     * @param turn the turn to validate
+     *
+     * @param turn              the turn to validate
      * @param middlePileManager the middle piles to check with
      * @return if the hit cards are valid
      */

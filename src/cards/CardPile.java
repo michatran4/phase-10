@@ -1,14 +1,17 @@
 package cards;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Stack;
 
 /**
- * This represents a card pile acting like a stack, which is the discard pile or the original pile.
+ * This represents a card pile acting like a stack, which is the discard pile
+ * or the original pile.
  */
 public class CardPile {
     private final Stack<Card> pile;
     private final boolean drawDeck;
+
     public CardPile(boolean draw) {
         pile = new Stack<>();
         drawDeck = draw;
@@ -18,7 +21,7 @@ public class CardPile {
         return drawDeck;
     }
 
-    public void addCard(Card c) {
+    public void add(Card c) {
         pile.push(c);
     }
 
@@ -41,12 +44,24 @@ public class CardPile {
             throw new IllegalStateException();
         }
         if (!drawDeck) {
-            if (pile.peek().toString().equals("SKIP")) { // TODO wild card?
+            if (pile.peek().toString().equals("SKIP")) {
                 System.out.println("not allowed");
                 return null;
             }
         }
         return pile.pop();
+    }
+
+    public Stack<Card> getPile() {
+        return pile;
+    }
+
+    public void clear() {
+        pile.clear();
+    }
+
+    public void addAll(Collection<Card> stack) {
+        pile.addAll(stack);
     }
 
     public boolean isEmpty() {

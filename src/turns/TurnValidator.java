@@ -40,6 +40,7 @@ public class TurnValidator {
      * @return if the turn is valid
      */
     public boolean validate(Turn turn, Phase phase) {
+        if (turn.getDroppedCards().size() == 0) return true;
         LinkedList<Card> dropped = turn.getDroppedCards();
         // create a histogram for number sets and runs
         // this histogram should be outside the loop so that cards for rules don't double-dip
@@ -62,11 +63,16 @@ public class TurnValidator {
             break;
         }
         int wildCards = 0; // number of wild cards
+        if (histogram.containsKey(13)) {
+            throw new IllegalStateException();
+        }
         if (histogram.get(14) != null) {
             wildCards = histogram.get(14); // check this at the end
             histogram.put(14, 0); // ignore wild card usage in the main logic.
         }
-        System.out.println(histogram.keySet());
+        if (DEBUGGING) {
+            System.out.println(histogram.keySet());
+        }
         for (Rule rule: phase.getRules()) {
             // remove cards for each phase if they work
             if (rule instanceof NumberSet) {
@@ -107,6 +113,9 @@ public class TurnValidator {
                     }
                     return false;
                 }
+                // prune before number runs are checked
+                //noinspection StatementWithEmptyBody
+                while (histogram.values().remove(0)) ;
             }
             else if (rule instanceof NumberRun) {
                 // should be a perfect number run with a count of 1
@@ -114,16 +123,42 @@ public class TurnValidator {
                 // since the set check has already modified numbers,
                 // find the first card number that isn't equal to 0. there should be a perfect run from there.
 
-                int firstNum = 0;
-                for (int i: histogram.keySet()) {
-                    if (histogram.get(i) != 0) {
-                        firstNum = i;
+                if (DEBUGGING) {
+                    System.out.println(histogram);
+                }
+                LinkedList<Integer> list = new LinkedList<>(histogram.keySet());
+                int firstNum = list.getFirst();
+                if (DEBUGGING) {
+                    System.out.println("Found lowest: " + firstNum);
+                    System.out.println("Wild cards: " + wildCards);
+                }
+                int lastNum = -1;
+                for (int i = list.size() - 1; i > -1; i--) {
+                    if (list.get(i) != 14) {
+                        lastNum = list.get(i);
                         break;
                     }
                 }
-                if (firstNum == 0) {
-                    throw new IllegalStateException();
+                if (lastNum == -1) throw new IllegalStateException();
+
+                // wild cards can be both tacked on and filled in gaps
+                // subtract the wild cards that are filled in gaps, then find tacked on
+                int temp = wildCards;
+                for (int i = lastNum - 1; i > firstNum; i--) {
+                    if (histogram.get(i) == null) {
+                        temp--;
+                    }
                 }
+                // tacked on. readjust if the biggest number is 12
+                if (lastNum == 12) {
+                    firstNum -= temp;
+                }
+
+                // remaining wild cards are assumed to just be added to the back
+                if (DEBUGGING) {
+                    System.out.println("Adjusted: " + firstNum);
+                }
+
                 for (int i = 0; i < rule.getNumCards(); i++) {
                     if (histogram.get(firstNum + i) == null) {
                         if (wildCards > 0) {
@@ -143,7 +178,7 @@ public class TurnValidator {
                         if (histogram.get(firstNum + i) == 0) {
                             // cannot subtract further
                             if (DEBUGGING) {
-                                System.out.println("Failed at num = " + (firstNum + i));
+                                System.out.println("Cannot subtract at num = " + (firstNum + i));
                             }
                             return false;
                         }

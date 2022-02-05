@@ -57,7 +57,7 @@ public class PhaseCollection {
      * @return the rules for a phase
      */
     public Phase getPhase(int phase) {
-        return phases.get(phase - 1);
+        return phase >= 10? null:phases.get(phase - 1);
     }
 
     /**

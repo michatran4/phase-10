@@ -37,4 +37,36 @@ public class Turn {
     public LinkedList<Card> getHitCards() {
         return hitCards;
     }
+
+    public String toString() {
+        StringBuilder output = new StringBuilder();
+        output.append("Dropped cards: ");
+        if (droppedCards.size() == 0) {
+            output.append("None");
+        }
+        for (int i = 0; i < droppedCards.size(); i++) {
+            if (i != 0) output.append(", ");
+            output.append(droppedCards.get(i).toString());
+        }
+        output.append("\n");
+
+        output.append("Hit cards: ");
+        if (hitCards.size() == 0) {
+            output.append("None");
+        }
+        for (int i = 0; i < hitCards.size(); i++) {
+            if (i != 0) output.append(", ");
+            output.append(hitCards.get(i).toString());
+        }
+        output.append("\n");
+
+        output.append("Discard card: ");
+        if (discardCard != null) { // valid because phase plays don't need it
+            output.append(discardCard);
+        }
+        else {
+            output.append("None");
+        }
+        return output.toString();
+    }
 }

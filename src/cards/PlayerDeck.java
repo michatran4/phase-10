@@ -11,10 +11,12 @@ import java.util.TreeMap;
 public class PlayerDeck {
     private final Map<Card, Integer> deck;
     private int size;
+    private final boolean DEBUGGING;
 
-    public PlayerDeck() {
+    public PlayerDeck(boolean b) {
         deck = new TreeMap<>();
         size = 0;
+        DEBUGGING = b;
     }
 
     public void addCard(Card c) {
@@ -23,12 +25,9 @@ public class PlayerDeck {
     }
 
     /**
-     * Remove card, for the GUI functionality.
-     *
-     * @param card the card, deciphered from the clicked button's logic
-     * @return the removed card
+     * Remove a card.
      */
-    public Card removeCard(Card card) {
+    public void removeCard(Card card) {
         if (!deck.containsKey(card)) throw new IllegalArgumentException();
         int count = deck.get(card);
         if (count - 1 == 0) {
@@ -38,7 +37,6 @@ public class PlayerDeck {
             deck.put(card, count - 1);
         }
         size--;
-        return card;
     }
 
     /**
@@ -61,6 +59,10 @@ public class PlayerDeck {
      * @return the removed cards
      */
     public LinkedList<Card> removeCardsWithNum(int number, int count) {
+        if (DEBUGGING) {
+            System.out.println("New remove: " + number + " " + count);
+            System.out.println("(before remove): " + deck);
+        }
         LinkedList<Card> removed = new LinkedList<>();
         int countRemoved = 0;
         for (Card card: deck.keySet()) {
@@ -79,7 +81,7 @@ public class PlayerDeck {
             }
         }
         if (countRemoved != count) {
-            throw new IllegalStateException("Histogram calculation error.");
+            throw new IllegalArgumentException("Histogram calculation error.");
         }
         if (removed.size() != count) {
             throw new IllegalStateException();
@@ -105,26 +107,6 @@ public class PlayerDeck {
     }
 
     // TODO remove single card so there is no creation of a linked list
-
-    /**
-     * Count cards with a specific number.
-     * This is for testing the deck after wild cards are used.
-     *
-     * @param number the number to check
-     * @return the count
-     */
-    public int countCardsOfNum(int number) {
-        int count = 0;
-        for (Card card: deck.keySet()) {
-            if (deck.get(card) == 0) {
-                throw new IllegalStateException("Prune error.");
-            }
-            if (card.getNum() == number) {
-                count += deck.get(card);
-            }
-        }
-        return count;
-    }
 
     /**
      * Remove cards with a specific color after being calculated with the
@@ -183,26 +165,6 @@ public class PlayerDeck {
     }
 
     /**
-     * Count cards with a specific color.
-     * This is for testing the deck after wild cards are used.
-     *
-     * @param color the color to check
-     * @return the count
-     */
-    public int countCardsOfColor(String color) {
-        int count = 0;
-        for (Card card: deck.keySet()) {
-            if (deck.get(card) == 0) {
-                throw new IllegalStateException("Prune error.");
-            }
-            if (card.getColor().equals(color)) {
-                count += deck.get(card);
-            }
-        }
-        return count;
-    }
-
-    /**
      * Clear the deck when a round ends.
      */
     public void clear() {
@@ -215,6 +177,7 @@ public class PlayerDeck {
     }
 
     public String toString() {
+        if (getSize() == 0) return "[]";
         StringBuilder output = new StringBuilder("[");
         for (Card c: deck.keySet()) {
             for (int i = 0; i < deck.get(c); i++) {
@@ -248,7 +211,7 @@ public class PlayerDeck {
 
     /**
      * For the CPUDeck to get the deck, and for when the round ends, decks to
-     * be replenished. TODO
+     * be replenished.
      *
      * @return the current deck
      */

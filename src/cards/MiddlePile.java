@@ -15,6 +15,7 @@ import java.util.LinkedList;
 public class MiddlePile {
     private final LinkedList<Card> cards; // linked list should be in order
     private final Rule rule;
+    private final boolean DEBUGGING;
 
     /**
      * Multiple middle piles should be created if a phase has multiple rules,
@@ -23,12 +24,18 @@ public class MiddlePile {
      * @param dropped cards to be added to the pile
      * @param r       the rule of this pile
      */
-    public MiddlePile(LinkedList<Card> dropped, Rule r) {
+    public MiddlePile(LinkedList<Card> dropped, Rule r, boolean b) {
         if (dropped.size() != r.getNumCards()) {
             throw new IllegalArgumentException();
         }
+        for (Card card: dropped) {
+            if (card == null) {
+                throw new IllegalStateException();
+            }
+        }
         cards = new LinkedList<>(dropped);
         rule = r;
+        DEBUGGING = b;
     }
 
     private int getIndexOfFirstNormalCard() {
@@ -73,16 +80,28 @@ public class MiddlePile {
      * @return if the card was added successfully (or addable)
      */
     public boolean addCard(Card toAdd, boolean add) { // TODO test
+        if (DEBUGGING) {
+            System.out.println("Middle pile: " + this);
+            if (!add) System.out.println("Test add");
+            System.out.println("adding card: " + toAdd.toString());
+        }
         if (toAdd.toString().equals("SKIP")) {
-            throw new IllegalStateException("Shouldn't be putting down skips.");
+            throw new IllegalStateException("Cannot add skips.");
         }
         if (rule instanceof NumberSet || rule instanceof ColorSet) {
+            if (DEBUGGING) {
+                System.out.println("Checking " + rule.getClass());
+                System.out.println(rule);
+            }
             if (toAdd.toString().equals("WILD")) {
                 if (add) cards.add(toAdd);
                 return true;
             }
 
             Card example = getFirstNormalCard();
+            if (DEBUGGING) {
+                System.out.println("EXAMPLE: " + example.toString());
+            }
             if (rule instanceof NumberSet) {
                 if (example.getNum() == toAdd.getNum()) {
                     if (add) cards.add(toAdd);
@@ -95,10 +114,19 @@ public class MiddlePile {
                     return true;
                 }
             }
+            if (DEBUGGING) {
+                System.out.println("Failed checks here (1)");
+            }
+            return false;
         }
         else { // number run requires checking bounds before randomly adding cards
+            if (DEBUGGING) {
+                System.out.println("Number run checking.");
+            }
             if (cards.size() == 12) {
-                System.out.println("Unavailable pile."); // TODO remove print
+                if (DEBUGGING) {
+                    System.out.println("Unavailable pile.");
+                }
                 return false;
             }
             // find the bounds of the pile
@@ -123,6 +151,7 @@ public class MiddlePile {
                 return true;
             }
             int num = toAdd.getNum();
+            // TODO allow for cards in the middle to be added
             if (start != 1 && num == start - 1) { // beginning is available
                 if (add) cards.add(0, toAdd);
                 // TODO beginning vs end matters for gameplay?
@@ -131,11 +160,13 @@ public class MiddlePile {
                 if (add) cards.add(toAdd);
             }
             else {
+                if (DEBUGGING) {
+                    System.out.println("Failed checks here (2)");
+                }
                 return false;
             }
             return true;
         }
-        throw new IllegalStateException(); // should've returned by this point
     }
 
     public int getStartBound() {
@@ -147,6 +178,11 @@ public class MiddlePile {
         int start = getFirstNormalCard().getNum() - first;
         if (start < 1) {
             throw new IllegalStateException();
+        }
+        if (DEBUGGING) {
+            System.out.println("First normal index: " + first);
+            System.out.println("First normal num: " + getFirstNormalCard().getNum());
+            System.out.println("Start num: " +start);
         }
         return start;
     }
@@ -162,10 +198,28 @@ public class MiddlePile {
         if (end > 12) {
             throw new IllegalStateException();
         }
-        return last;
+        if (DEBUGGING) {
+            System.out.println("Last normal index: " + last);
+            System.out.println("Last normal num: " + getLastNormalCard().getNum());
+            System.out.println("Remaining: " + remaining);
+            System.out.println("End num: " + end);
+        }
+        return end;
     }
 
     public Rule getRule() {
         return rule;
+    }
+
+    public String toString() {
+        if (cards.size() == 0) return "[]";
+        StringBuilder output = new StringBuilder("[");
+        for (Card c: cards) {
+            output.append(c.toString());
+            output.append(", ");
+        }
+        output = new StringBuilder(output.substring(0, output.length() - 2));
+        output.append("]");
+        return output.toString();
     }
 }

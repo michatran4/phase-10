@@ -3,13 +3,18 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 
+/**
+ * This class manages the players queue, their phases, and their scores.
+ */
 public class PlayerManager {
     private final Queue<String> playerList;
     private final Map<String, Integer> phaseMap;
+    private final Map<String, Integer> scoreboard;
 
     public PlayerManager() {
         playerList = new LinkedList<>();
         phaseMap = new HashMap<>();
+        scoreboard = new HashMap<>();
     }
 
     /**
@@ -20,6 +25,7 @@ public class PlayerManager {
     public void add(String name) {
         playerList.add(name);
         phaseMap.put(name, 1);
+        scoreboard.put(name, 0);
     }
 
     /**
@@ -56,15 +62,32 @@ public class PlayerManager {
     }
 
     /**
-     * @return if any players have reached phase 10.
+     * @return if any players have reached phase 10, and the player with the lowest score
      */
-    public boolean checkPhases() {
+    public String getWinner() {
+        String winner = "";
+        int lowestScore = Integer.MAX_VALUE;
         for (String player: phaseMap.keySet()) {
-            if (phaseMap.get(player) == 10) {
-                return true;
+            if (phaseMap.get(player) == 10 && scoreboard.get(player) < lowestScore) {
+                lowestScore = scoreboard.get(player);
+                winner = player;
             }
         }
-        return false;
+        return winner;
+    }
+
+    public void addScore(String player, int score) {
+        scoreboard.put(player, scoreboard.get(player) + score);
+    }
+
+    public String getScoreboard() {
+        StringBuilder output = new StringBuilder();
+        for (String player: scoreboard.keySet()) {
+            output.append(player)
+                    .append(" - ")
+                    .append(scoreboard.get(player)).append("\n");
+        }
+        return output.toString();
     }
 
     /**
@@ -87,5 +110,11 @@ public class PlayerManager {
      */
     public String[] getPlayers() {
         return playerList.toArray(new String[0]);
+    }
+
+    public String toString() {
+        return "PlayerManager{" +
+                "phaseMap=" + phaseMap +
+                '}';
     }
 }

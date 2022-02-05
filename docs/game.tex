@@ -1,0 +1,84 @@
+\documentclass[12pt]{article}
+
+\title{Phase 10}
+\author{Joharah Seguerra \\ Michael Tran}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+This is a Java implementation of the card game Phase 10. This program is meant for four
+players; the main player, and three CPUs.
+
+\subsection{Cards}
+\begin{itemize}
+	\item There are four colors for the numbered cards: red, blue, yellow, and green.
+	\item Cards are numbered one through twelve, and there are two of each per color.
+	\item Four skip cards
+	\item Eight wild cards
+\end{itemize}
+
+\subsubsection{Card functionality}
+
+\begin{itemize}
+	\item Wild cards are substitutes for a card in a phase.
+	\item Skip cards are used to skip the next player's turn. The CPU automatically chooses the
+player with the smallest amount of cards to skip, excluding itself. Skip cards cannot be
+picked up from the discard pile. If the first card in the discard pile at the start of a
+game is a skip card, the first player loses his turn.
+Skip cards cannot be hit into the middle pile and they cannot be used like wild cards to
+complete a phase.
+	\item Cards in played phases cannot be picked up.
+\end{itemize}
+
+\subsection{Phases}
+The default phases are the following:
+\begin{itemize}
+	\item 1. 2 sets of 3
+	\item 2. 1 set of 3 + 1 run of 4
+	\item 3. 1 set of 4 + 1 run of 4
+	\item 4. 1 run of 7
+	\item 5. 1 run of 8
+	\item 6. 1 run of 9
+	\item 7. 2 sets of 4
+	\item 8. 7 cards of one color
+	\item 9. 1 set of 5 + 1 set of 2
+\end{itemize}
+
+A set is cards of the same number. A run is a sequential set of numbers.
+One must complete a phase to advance. If a phase has multiple combinations of cards, they
+must all be played.
+
+\section{Gameplay}
+This program allows for one human player and three CPU players.
+The player to the dealer's left starts. Turns are in a clockwise direction.
+
+Players start off their turn with choosing a card either from the discard or draw pile.
+If the player is able to make a phase, he can play the cards and hit during the same
+turn. Players end their turn by discarding a card into the discard pile.
+
+Rounds are played until someone completes their phase and empties their entire deck.
+Scores are computed according to the following:
+
+\begin{itemize}
+	\item Cards numbered 1-9 are worth 5 points each.
+	\item Cards numbered 10-12 are worth 10 points each.
+	\item Skips and wilds are worth 25 points each.
+\end{itemize}
+
+A new hand is dealt out after a round is ended. All cards are gathered in the draw pile,
+shuffled, and each person is dealt 10 cards.
+
+If one has not advanced to their next phase, they must resume working on their current
+phase.
+
+\subsection{Hitting}
+One can hit cards from their deck onto the middle piles from finished phases. These cards
+must match the piles. Cards must fit in a number run properly for it to be a valid hit.
+
+\subsection{Winning}
+The winner is the person with the lowest score and has completed ten phases.
+
+\end{document}

@@ -67,13 +67,4 @@ public class CardPile {
     public boolean isEmpty() {
         return pile.isEmpty();
     }
-
-    public String toString() {
-        StringBuilder output = new StringBuilder();
-        for (Card c: pile) {
-            output.append(c.toString());
-            output.append("\n");
-        }
-        return output.toString();
-    }
 }

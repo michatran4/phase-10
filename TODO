@@ -3,5 +3,5 @@
     hit.
 - Finish get next turn algorithms
 - Make game documentation
-- Format everything to 80 character wrap
 - Make a more efficient data structure for cards
+- Validate and create number runs with tree sets, wilds will represent a number

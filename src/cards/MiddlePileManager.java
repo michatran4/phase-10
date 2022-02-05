@@ -16,4 +16,17 @@ public class MiddlePileManager {
     public LinkedList<MiddlePile> getMiddlePiles() {
         return middlePiles;
     }
+
+    public String toString() {
+        StringBuilder output = new StringBuilder();
+        for (MiddlePile pile: middlePiles) {
+            output.append(pile.getRule().toString());
+            output.append("\n");
+        }
+        return output.toString();
+    }
+
+    public void clear() {
+        middlePiles.clear();
+    }
 }

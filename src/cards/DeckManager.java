@@ -5,9 +5,11 @@ import java.util.Map;
 
 public class DeckManager {
     private final Map<String, PlayerDeck> deckMap;
+    private final boolean DEBUGGING;
 
-    public DeckManager() {
+    public DeckManager(boolean b) {
         deckMap = new HashMap<>();
+        DEBUGGING = b;
     }
 
     public void put(String player, PlayerDeck deck) {
@@ -43,10 +45,10 @@ public class DeckManager {
     public void clearDecks() {
         for (String player: deckMap.keySet()) {
             if (player.contains("CPU")) {
-                deckMap.put(player, new CPUDeck());
+                deckMap.put(player, new CPUDeck(DEBUGGING));
             }
             else {
-                deckMap.put(player, new PlayerDeck());
+                deckMap.put(player, new PlayerDeck(false));
             }
         }
     }

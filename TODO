@@ -4,4 +4,4 @@
 - Finish get next turn algorithms
 - Make game documentation
 - Make a more efficient data structure for cards
-- Validate and create number runs with tree sets, wilds will represent a number
+- Format to 100 character wrap

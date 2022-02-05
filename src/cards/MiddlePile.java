@@ -6,6 +6,9 @@ import phases.NumberSet;
 import phases.Rule;
 
 import java.util.LinkedList;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * Middle piles are created once a player advances on to the next phase.
@@ -16,6 +19,7 @@ public class MiddlePile {
     private final LinkedList<Card> cards; // linked list should be in order
     private final Rule rule;
     private final boolean DEBUGGING;
+    private TreeMap<Integer, Card> run;
 
     /**
      * Multiple middle piles should be created if a phase has multiple rules,
@@ -29,13 +33,129 @@ public class MiddlePile {
             throw new IllegalArgumentException();
         }
         for (Card card: dropped) {
-            if (card == null) {
+            if (card == null) { // skips already checked
                 throw new IllegalStateException();
             }
         }
         cards = new LinkedList<>(dropped);
         rule = r;
         DEBUGGING = b;
+        if (r instanceof NumberRun) {
+            createRunMap();
+        }
+    }
+
+    /**
+     * Gets a single card with a number after being checked.
+     * Number runs have one card of each number (except for wilds).
+     *
+     * @param number the number to get
+     * @return the card
+     */
+    private Card getCardWithNum(int number) {
+        if (DEBUGGING) {
+            System.out.println("Number run remove: " + number);
+            System.out.println("CARDS: " + cards.toString());
+        }
+        for (Card card: cards) {
+            if (DEBUGGING) {
+                System.out.println("new iteration: " + card.getNum());
+            }
+            if (card.getNum() == number) {
+                return card;
+            }
+            if (DEBUGGING) {
+                System.out.println("Failed comparison!");
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Use a tree map for number runs instead of the cards linked list.
+     */
+    private void createRunMap() {
+        run = new TreeMap<>();
+        /*
+        - Count the wild cards.
+        If there are 0 wild cards, then this is a run without wild cards. Make it.
+        Else,
+        - Go from the minimum non-wild number until wilds run out, or until you reach 12
+        - The remainder wild cards are subtracted from the minimum.
+         */
+        TreeMap<Integer, Integer> histogram = new TreeMap<>();
+        for (Card c: cards) {
+            histogram.merge(c.getNum(), 1, Integer::sum);
+        }
+        int wildCards = 0;
+        if (histogram.containsKey(14)) {
+            wildCards = histogram.get(14);
+        }
+        int minimum = histogram.keySet().iterator().next();
+        if (DEBUGGING) {
+            System.out.println("New run map created.");
+            System.out.println("Minimum: " + minimum);
+        }
+        if (wildCards == 0) {
+            for (int i = minimum; i < minimum + rule.getNumCards(); i++) {
+                Card card = getCardWithNum(i);
+                if (card == null) throw new IllegalStateException();
+                run.put(i, card);
+                if (DEBUGGING) {
+                    System.out.println("New run key (0): " + i);
+                }
+            }
+        }
+        else {
+            for (int i = minimum; i < minimum + rule.getNumCards(); i++) { // adds including minimum
+                if (DEBUGGING) {
+                    System.out.println("Checking numbers loop");
+                }
+                Card card = getCardWithNum(i);
+                if (card == null) {
+                    if (wildCards < 1) throw new IllegalStateException();
+                    run.put(i, new Card("WILD"));
+                    wildCards--;
+                    if (DEBUGGING) {
+                        System.out.println("New run key (Card not found, used wild): " + i);
+                    }
+                }
+                else {
+                    run.put(i, card);
+                    if (DEBUGGING) {
+                        System.out.println("New run key (2): " + i);
+                    }
+                }
+            }
+            // remaining wild cards that didn't just fill in gaps
+            // start at minimum - 1 because minimum is already added
+            for (int j = minimum - 1; wildCards > 0; j--) {
+                Card wild = getCardWithNum(14);
+                if (wild == null) throw new IllegalStateException();
+                run.put(j, wild);
+                wildCards--;
+                if (DEBUGGING) {
+                    System.out.println("New run key (3): " + j);
+                }
+            }
+        }
+        if (DEBUGGING) {
+            System.out.println("Run map: " + run);
+        }
+    }
+
+    public Set<Integer> getAvailableNums() {
+        Set<Integer> unfilled = new TreeSet<>();
+        Set<Integer> filled = run.keySet();
+        if (DEBUGGING) {
+            System.out.println("Filled numbers: " + run.keySet());
+        }
+        for (int i = 1; i <= 12; i++) {
+            if (!filled.contains(i)) {
+                unfilled.add(i);
+            }
+        }
+        return unfilled;
     }
 
     private int getIndexOfFirstNormalCard() {
@@ -51,25 +171,8 @@ public class MiddlePile {
         throw new IllegalStateException("A stack must contain a non wild card.");
     }
 
-    private int getIndexOfLastNormalCard() {
-        for (int i = cards.size() - 1; i > -1; i--) {
-            Card c = cards.get(i);
-            if (c.toString().equals("SKIP")) {
-                throw new IllegalStateException("Skips should not exist in a middle pile."); // just double-checking
-            }
-            if (!c.toString().equals("WILD")) {
-                return i;
-            }
-        }
-        throw new IllegalStateException("A stack must contain a non wild card.");
-    }
-
     public Card getFirstNormalCard() {
         return cards.get(getIndexOfFirstNormalCard());
-    }
-
-    public Card getLastNormalCard() {
-        return cards.get(getIndexOfLastNormalCard());
     }
 
     /**
@@ -115,13 +218,12 @@ public class MiddlePile {
                 }
             }
             if (DEBUGGING) {
-                System.out.println("Failed checks here (1)");
+                System.out.println("Failed checks here.");
             }
-            return false;
         }
         else { // number run requires checking bounds before randomly adding cards
             if (DEBUGGING) {
-                System.out.println("Number run checking.");
+                System.out.println("Number run checking: " + toAdd);
             }
             if (cards.size() == 12) {
                 if (DEBUGGING) {
@@ -129,82 +231,52 @@ public class MiddlePile {
                 }
                 return false;
             }
-            // find the bounds of the pile
-            int start = getStartBound();
-            int end = getEndBound();
 
             // start and end are inclusive
             if (toAdd.toString().equals("WILD")) {
-                if (start != 1) {
-                    if (add) {
-                        cards.add(0, toAdd);
+                for (int i = 1; i <= 12; i++) {
+                    if (!run.containsKey(i)) {
+                        if (add) {
+                            run.put(i, toAdd);
+                            int index = 0; // add it in cards in order
+                            for (int compare: run.keySet()) {
+                                if (compare == i) {
+                                    break;
+                                }
+                                index++;
+                            }
+                            cards.add(index, toAdd);
+                            if (DEBUGGING) {
+                                System.out.println("Added to run map (0): " + run);
+                                System.out.println(cards);
+                            }
+                        }
+                        return true;
                     }
                 }
-                else if (end != 12) {
-                    if (add) {
-                        cards.add(toAdd);
+                throw new IllegalStateException("Should be in bounds.");
+            }
+            int num = toAdd.getNum();
+            if (!run.containsKey(num)) {
+                if (add) {
+                    run.put(num, toAdd);
+                    int index = 0; // add it in cards in order
+                    for (int compare: run.keySet()) {
+                        if (compare == num) {
+                            break;
+                        }
+                        index++;
                     }
-                }
-                else {
-                    throw new IllegalStateException("Should be in bounds.");
+                    cards.add(index, toAdd);
+                    if (DEBUGGING) {
+                        System.out.println("Added to run map (1): " + run);
+                        System.out.println(cards);
+                    }
                 }
                 return true;
             }
-            int num = toAdd.getNum();
-            // TODO allow for cards in the middle to be added
-            if (start != 1 && num == start - 1) { // beginning is available
-                if (add) cards.add(0, toAdd);
-                // TODO beginning vs end matters for gameplay?
-            }
-            else if (end != 12 && num == end + 1) {
-                if (add) cards.add(toAdd);
-            }
-            else {
-                if (DEBUGGING) {
-                    System.out.println("Failed checks here (2)");
-                }
-                return false;
-            }
-            return true;
         }
-    }
-
-    public int getStartBound() {
-        if (!(rule instanceof NumberRun))
-            throw new UnsupportedOperationException();
-        // find the bounds of the pile
-        int first = getIndexOfFirstNormalCard();
-        // this the amount wilds that go before the number. calculate what the first wild's number actually is
-        int start = getFirstNormalCard().getNum() - first;
-        if (start < 1) {
-            throw new IllegalStateException();
-        }
-        if (DEBUGGING) {
-            System.out.println("First normal index: " + first);
-            System.out.println("First normal num: " + getFirstNormalCard().getNum());
-            System.out.println("Start num: " +start);
-        }
-        return start;
-    }
-
-    public int getEndBound() {
-        if (!(rule instanceof NumberRun))
-            throw new UnsupportedOperationException();
-        int last = getIndexOfLastNormalCard();
-        // this is the index before any possible wild cards
-        int remaining = cards.size() - 1 - last; // find remaining wild cards
-        int end = getLastNormalCard().getNum() + remaining;
-        // wild and skip card numbers (13 and 14) will never be used to add
-        if (end > 12) {
-            throw new IllegalStateException();
-        }
-        if (DEBUGGING) {
-            System.out.println("Last normal index: " + last);
-            System.out.println("Last normal num: " + getLastNormalCard().getNum());
-            System.out.println("Remaining: " + remaining);
-            System.out.println("End num: " + end);
-        }
-        return end;
+        return false;
     }
 
     public Rule getRule() {

@@ -3,9 +3,7 @@ package cards;
 import phases.*;
 import turns.Turn;
 
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * The CPU deck extends the player deck with CPU moves.
@@ -25,6 +23,7 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
 
     /**
      * Make a histogram for the sole purpose of number set checking.
+     *
      * @return a histogram of the card numbers
      */
     private TreeMap<Integer, Integer> getHistogram() {
@@ -266,9 +265,10 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
                 }
             }
             else {
-                if (phase == null || phase.getRules().get(0) instanceof NumberSet) {
+                if (phase == null || phase.getRules().getLast() instanceof NumberSet) {
                     // null phase indicates hitting
                     // discard the lowest counts for number sets; they're unlikely to build a set.
+                    /*
                     if (histogram.containsValue(1)) { // one of a kind
                         for (Card card: deck.keySet()) {
                             if (deck.get(card) == 1) {
@@ -297,6 +297,12 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
                             }
                         }
                     }
+                     */
+                    // discard a random card that isn't a wild
+                    ArrayList<Card> set = new ArrayList<>(deck.keySet());
+                    set.remove(new Card("WILD"));
+                    int item = new Random().nextInt(set.size());
+                    discard = set.get(item);
                 }
                 else {
                     // number runs and color runs require opposite strategy, discard the highest
@@ -351,62 +357,53 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
         LinkedList<Card> hit = new LinkedList<>();
         for (MiddlePile middlePile: middlePileManager.getMiddlePiles()) {
             if (getSize() == 1) break;
-            if (middlePile.getRule() instanceof NumberRun) {
+            Rule rule = middlePile.getRule();
+            if (rule instanceof NumberRun) {
+                TreeMap<Integer, Integer> histogram = getHistogram();
+                histogram.remove(13); // ignore skip card usage in main logic
                 if (DEBUGGING) {
-                    System.out.println("New middle pile: " + middlePile);
+                    System.out.println("New middle pile with number run: " + middlePile);
+                    System.out.println("Available nums: " + middlePile.getAvailableNums());
+                    System.out.println("Current deck: " + deck);
                 }
-                int start = middlePile.getStartBound();
-                int end = middlePile.getEndBound();
-                // add with a loop to each middle pile
-                while (start > 1 && getSize() > 1) { // start is at least 2
-                    try {
+                Set<Integer> set = middlePile.getAvailableNums();
+                for (int i: set) {
+                    if (histogram.containsKey(i)) {
+                        if (histogram.get(i) < 1) throw new IllegalStateException();
+                        histogram.put(i, histogram.get(i) - 1);
+                        hit.addAll(removeCardsWithNum(i, 1));
                         if (DEBUGGING) {
-                            System.out.println("Before remove (1).");
+                            System.out.println("adding middle: " + hit.getLast().toString());
                         }
-                        LinkedList<Card> removed = removeCardsWithNum(start - 1, 1);
-                        hit.addAll(removed);
-                        start--;
                     }
-                    catch (IllegalArgumentException e) {
-                        if (DEBUGGING) {
-                            System.out.println("Could not find preceding card: " + (start - 1));
-                        }
-                        // could not find a card
-                        break;
+                    else if (histogram.containsKey(14) && histogram.get(14) > 0) { // wilds
+                        histogram.put(14, histogram.get(14) - 1);
+                        hit.addAll(removeCardsWithNum(14, 1));
+                        System.out.println("adding wild to middle: " + hit.getLast().toString());
                     }
                 }
-                while (end < 12 && getSize() > 1) { // end is at most 11
-                    try {
-                        if (DEBUGGING) {
-                            System.out.println("Before remove (2).");
-                        }
-                        LinkedList<Card> removed = removeCardsWithNum(end + 1, 1);
-                        hit.addAll(removed);
-                        end++;
-                    }
-                    catch (IllegalArgumentException e) {
-                        // could not find a card
-                        if (DEBUGGING) {
-                            System.out.println("Could not find succeeding card: " + (end + 1));
-                        }
-                        break;
-                    }
-                }
+                // prune before more middle piles are checked
+                //noinspection StatementWithEmptyBody
+                while (histogram.values().remove(0)) ;
             }
             else { // add all the cards that are the same, typical case
+                if (DEBUGGING) {
+                    System.out.println("New middle pile: " + middlePile);
+                    System.out.println("Current deck: " + deck);
+                }
                 Card normal = middlePile.getFirstNormalCard();
-                if (middlePile.getRule() instanceof ColorSet) {
+                if (rule instanceof ColorSet) {
                     hit.addAll(removeCardsWithColor(normal.getColor()));
                 }
-                if (middlePile.getRule() instanceof NumberSet) {
+                if (rule instanceof NumberSet) {
                     hit.addAll(removeCardsWithNum(normal.getNum()));
-                }
-                if (deck.size() == 0) {
-                    addCard(hit.poll());
                 }
             }
         }
-
+        if (deck.size() == 0) {
+            System.out.println("adding card back to discard");
+            addCard(hit.poll());
+        }
         Card discard = getDiscardCard(null);
         removeCard(discard); // DO NOT DIRECTLY MODIFY THE DECK
         return new Turn(new LinkedList<>(), discard, hit);

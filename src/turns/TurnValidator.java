@@ -140,6 +140,9 @@ public class TurnValidator {
                     }
                 }
                 if (lastNum == -1) throw new IllegalStateException();
+                if (DEBUGGING) {
+                    System.out.println("Biggest number: " + lastNum);
+                }
 
                 // wild cards can be both tacked on and filled in gaps
                 // subtract the wild cards that are filled in gaps, then find tacked on
@@ -147,11 +150,30 @@ public class TurnValidator {
                 for (int i = lastNum - 1; i > firstNum; i--) {
                     if (histogram.get(i) == null) {
                         temp--;
+                        if (DEBUGGING) {
+                            System.out.println("Middle card deducted.");
+                        }
                     }
                 }
-                // tacked on. readjust if the biggest number is 12
+                if (DEBUGGING) {
+                    System.out.println("Wild cards: " + wildCards);
+                    System.out.println("Temp cards: " + temp);
+                    System.out.println("Middle cards: " + (wildCards - temp));
+                }
+                // force to be tacked on to the end until there are no more wild cards
+                for (; lastNum < 12 && temp > 0; lastNum++) {
+                    temp--;
+                    if (DEBUGGING) {
+                        System.out.println("Subtracted tacked on to end.");
+                        System.out.println("Temp cards: " + temp);
+                    }
+                }
+                // adjust the tacked on to beginning
                 if (lastNum == 12) {
                     firstNum -= temp;
+                    if (DEBUGGING) {
+                        System.out.println("Subtracted tacked on to beginning.");
+                    }
                 }
 
                 // remaining wild cards are assumed to just be added to the back

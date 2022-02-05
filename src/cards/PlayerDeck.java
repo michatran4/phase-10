@@ -10,8 +10,8 @@ import java.util.TreeMap;
  */
 public class PlayerDeck {
     private final Map<Card, Integer> deck;
-    private int size;
     private final boolean DEBUGGING;
+    private int size;
 
     public PlayerDeck(boolean b) {
         deck = new TreeMap<>();
@@ -88,6 +88,9 @@ public class PlayerDeck {
         }
         prune();
         size -= count;
+        if (DEBUGGING) {
+            System.out.println("After remove: " + deck);
+        }
         return removed;
     }
 

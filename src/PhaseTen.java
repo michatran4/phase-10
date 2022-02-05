@@ -100,6 +100,7 @@ public class PhaseTen {
                 // TODO GUI
                 System.out.println(playerManager.getScoreboard());
             }
+            System.out.println("Current winner: " + playerManager.getWinner());
             if (!playerManager.getWinner().equals("")) {
                 // TODO GUI
                 System.out.println("WINNER: " + playerManager.getWinner());
@@ -121,6 +122,7 @@ public class PhaseTen {
     private void play() {
         while (!deckManager.checkDecks()) { // while none are empty for the round
             if (DEBUGGING) {
+                System.out.println();
                 System.out.println("New loop, current decks:");
                 System.out.println(deckManager.toString());
                 System.out.println("Current phases: " + playerManager.toString());
@@ -128,7 +130,7 @@ public class PhaseTen {
             for (int num = 0; num < playerManager.getNumPlayers(); num++) {
                 String player = playerManager.getNextPlayer();
                 if (DEBUGGING) {
-                    System.out.println();
+                    System.out.println("Current middle piles: ");
                     System.out.println(middlePileManager.toString());
                     System.out.println("New player: " + player);
                 }
@@ -150,6 +152,7 @@ public class PhaseTen {
                     if (DEBUGGING) {
                         System.out.println("Card added: " + added.toString());
                         System.out.println(deck);
+                        System.out.println(deck.getDeck().toString());
                     }
                     // TODO don't do this if you can implement an algorithm
                     Turn turn;
@@ -157,8 +160,7 @@ public class PhaseTen {
                         turn = deck.getNextTurn(middlePileManager);
                         if (DEBUGGING) {
                             System.out.println(turn.toString());
-                            System.out.println("Current deck: " +
-                                    deckManager.get(player).toString());
+                            System.out.println("Current deck (0): " + deck);
                             System.out.println();
                         }
                         if (!(turnValidator.validate(turn, middlePileManager))) {
@@ -171,29 +173,16 @@ public class PhaseTen {
                             System.out.println("Current phase: " + phase.toString());
                         }
                         turn = deck.getNextTurn(phase);
-                        Turn hit = null;
                         if (DEBUGGING) {
                             System.out.println("New turn: " + turn.toString());
-                            System.out.println("Current deck: " +
-                                    deckManager.get(player).toString());
-                        }
-                        if (turn.getDroppedCards().size() != 0) {
-                            playerManager.incrementPhase(player);
-                            hitting.add(player);
-                            hit = deck.getNextTurn(middlePileManager);
-                            if (DEBUGGING) {
-                                System.out.println("Phase completed.");
-                                System.out.println("Hitting turn: " +
-                                        hit.toString());
-                            }
-                        }
-                        if (DEBUGGING) {
+                            System.out.println("Current deck (1): " + deck);
                             System.out.println("Validating a turn.");
                         }
                         if (!(turnValidator.validate(turn, phase))) {
                             throw new IllegalStateException();
                         }
 
+                        Turn hit = null;
                         if (turn.getDroppedCards().size() != 0) {
                             LinkedList<Card> dropped = turn.getDroppedCards();
                             for (Rule rule: phase.getRules()) {
@@ -209,14 +198,7 @@ public class PhaseTen {
                                         Card inOrder = dropped.poll();
                                         if (inOrder == null)
                                             throw new IllegalStateException();
-                                        // TODO why
-                                        if (inOrder.toString().equals("WILD")) {
-                                            //middle.add(0, inOrder);
-                                            middle.add(inOrder);
-                                        }
-                                        else {
-                                            middle.add(inOrder);
-                                        }
+                                        middle.add(inOrder);
                                         if (DEBUGGING) {
                                             System.out.println("Adding: " + inOrder);
                                         }
@@ -230,6 +212,15 @@ public class PhaseTen {
                             }
                             if (dropped.size() != 0) {
                                 throw new IllegalStateException();
+                            }
+                            // hit on the same turn
+                            playerManager.incrementPhase(player);
+                            hitting.add(player);
+                            hit = deck.getNextTurn(middlePileManager);
+                            if (DEBUGGING) {
+                                System.out.println("Phase completed.");
+                                System.out.println("Hitting turn: " +
+                                        hit.toString());
                             }
                         }
                         addHitsAndDiscard(Objects.requireNonNullElse(hit,
@@ -261,6 +252,13 @@ public class PhaseTen {
         return sorted[0];
     }
 
+    /**
+     * This adds hit cards to middle piles and discards the discard card.
+     * This will always be called after something is validated.
+     *
+     * @param turn   the turn with the disposed cards
+     * @param player the current player, possibly discarding a skip card
+     */
     private void addHitsAndDiscard(Turn turn, String player) {
         for (Card card: turn.getHitCards()) {
             boolean found = false;

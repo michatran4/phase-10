@@ -66,6 +66,7 @@ public class TestDeck {
             playerDeck.removeCardsWithColor("BLUE", 1);
             throw new RuntimeException();
         }
-        catch (IllegalStateException ignored){}
+        catch (IllegalStateException ignored) {
+        }
     }
 }

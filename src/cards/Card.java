@@ -36,8 +36,7 @@ public class Card implements Comparable<Card> {
         if (!(obj instanceof Card)) {
             return false;
         }
-        Card other = (Card) obj;
-        return getNum() == other.getNum() && getColor().equals(other.getColor());
+        return toString().equals(obj.toString());
     }
 
     public int compareTo(Card o) {

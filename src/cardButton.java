@@ -12,11 +12,18 @@ public class cardButton extends JButton {
         selected = false;
     }
 
+    public cardButton(String s)
+    {
+        super(s);
+        selected = false;
+    }
+
     public cardButton(ImageIcon icon)
     {
         super(icon);
         selected = false;
     }
+
 
     public boolean isSelected()
     {

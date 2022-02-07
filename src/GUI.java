@@ -38,11 +38,17 @@ public class GUI {
     private int round, numSelected, numSetsNeeded, numSetsCompleted, rows, cols; //necessary variables for phase rounds
     private int colorIndex; // index tracker of selectionColors
     private int turn; //keep track of whose turn it is. order goes counterclockwise.
+    private String player1Phase, player2Phase, player3Phase, player4Phase;
 
     //Basic setup of the frame container, panels, card piles (buttons)
     public GUI()
     {
         round = 0;
+        player1Phase = "Phase 1";
+        player2Phase = "Phase 1";
+        player3Phase = "Phase 1";
+        player4Phase = "Phase 1";
+
 
         //Set up main container frame of all panels
         setupFrame();
@@ -115,15 +121,16 @@ public class GUI {
         Document doc = scoreboard.getStyledDocument();
         try
         {
-            StyleConstants.setFontSize(attributeSet, 40);
+            StyleConstants.setFontSize(attributeSet, 32);
             StyleConstants.setBold(attributeSet, true);
             StyleConstants.setUnderline(attributeSet, true);
             StyleConstants.setFontFamily(attributeSet, "Magneto");
             StyleConstants.setForeground(attributeSet, Color.BLUE);
-            doc.insertString(doc.getLength(), ("Phase : " + round + "\n"), attributeSet);
+            doc.insertString(doc.getLength(), ("Phase 10" + "\n"), attributeSet);
 
+            //SCOREBOARD
             attributeSet = new SimpleAttributeSet();
-            StyleConstants.setFontSize(attributeSet, 28);
+            StyleConstants.setFontSize(attributeSet, 24);
             StyleConstants.setBold(attributeSet, true);
             StyleConstants.setItalic(attributeSet, true);
             StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
@@ -131,11 +138,29 @@ public class GUI {
 
             attributeSet = new SimpleAttributeSet();
             StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
-            StyleConstants.setFontSize(attributeSet, 18);
-            doc.insertString(doc.getLength(), ("Player 1: " + p1 + "\n\n"), attributeSet);
-            doc.insertString(doc.getLength(), ("Player 2: " + p2 + "\n\n"), attributeSet);
-            doc.insertString(doc.getLength(), ("Player 3: " + p3 + "\n\n"), attributeSet);
-            doc.insertString(doc.getLength(), ("Player 4: " + p4 + "\n\n"), attributeSet);
+            StyleConstants.setFontSize(attributeSet, 14);
+            doc.insertString(doc.getLength(), ("Player 1: " + p1 + "\n"), attributeSet);
+            doc.insertString(doc.getLength(), ("Player 2: " + p2 + "\n"), attributeSet);
+            doc.insertString(doc.getLength(), ("Player 3: " + p3 + "\n"), attributeSet);
+            doc.insertString(doc.getLength(), ("Player 4: " + p4 + "\n"), attributeSet);
+
+            //COMPLETED PHASE SETS
+
+            attributeSet = new SimpleAttributeSet();
+            StyleConstants.setFontSize(attributeSet, 16);
+            StyleConstants.setBold(attributeSet, true);
+            StyleConstants.setItalic(attributeSet, true);
+            StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
+            doc.insertString(doc.getLength(), ("\nCompleted Phase Sets\n\n"), attributeSet);
+
+            attributeSet = new SimpleAttributeSet();
+            StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
+            StyleConstants.setFontSize(attributeSet, 14);
+            doc.insertString(doc.getLength(), ("Player 1: " + player1Phase + "\n"), attributeSet);
+            doc.insertString(doc.getLength(), ("Player 2: " + player2Phase + "\n"), attributeSet);
+            doc.insertString(doc.getLength(), ("Player 3: " + player3Phase + "\n"), attributeSet);
+            doc.insertString(doc.getLength(), ("Player 4: " + player4Phase + "\n"), attributeSet);
+
         }
         catch (BadLocationException e)
         {
@@ -891,6 +916,7 @@ public class GUI {
         }
     }
 
+    // CPU method to draw from either the draw/discard pile
     private void CPUDraw()
     {
         System.out.println("A CPU has drawn a card!\n");
@@ -908,19 +934,19 @@ public class GUI {
         if(turn == 2) {
             card.setIcon(rightCard);
             card.setPreferredSize(new Dimension(sideWidth, sideHeight));
-            p2Cards.add(card);
+            p2Cards.add(card); //add michael's logic
             updateCPUCardPanels();
         }
         if(turn == 3) {
             card.setIcon(topCard);
             card.setPreferredSize(new Dimension(topWidth, topHeight));
-            p3Cards.add(card);
+            p3Cards.add(card); //add michael's logic
             updateCPUCardPanels();
         }
         if(turn == 4) {
             card.setIcon(leftCard);
             card.setPreferredSize(new Dimension(sideWidth, sideHeight));
-            p4Cards.add(card);
+            p4Cards.add(card); //add michael's logic
             updateCPUCardPanels();
         }
 

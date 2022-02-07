@@ -38,7 +38,8 @@ public class GUI {
     private int round, numSelected, numSetsNeeded, numSetsCompleted, rows, cols; //necessary variables for phase rounds
     private int colorIndex; // index tracker of selectionColors
     private int turn; //keep track of whose turn it is. order goes counterclockwise.
-    private String player1Phase, player2Phase, player3Phase, player4Phase;
+    private String player1Phase, player2Phase, player3Phase, player4Phase; //keeps track of what phase each player is on
+    private String move; //display game progression, what moves each player is doing.
 
     //Basic setup of the frame container, panels, card piles (buttons)
     public GUI()
@@ -48,6 +49,7 @@ public class GUI {
         player2Phase = "Phase 1";
         player3Phase = "Phase 1";
         player4Phase = "Phase 1";
+        move = "";
 
 
         //Set up main container frame of all panels
@@ -127,6 +129,13 @@ public class GUI {
             StyleConstants.setFontFamily(attributeSet, "Magneto");
             StyleConstants.setForeground(attributeSet, Color.BLUE);
             doc.insertString(doc.getLength(), ("Phase 10" + "\n"), attributeSet);
+
+            //Display what is going on.
+            attributeSet = new SimpleAttributeSet();
+            StyleConstants.setFontSize(attributeSet, 20);
+            StyleConstants.setBold(attributeSet, true);
+            StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
+            doc.insertString(doc.getLength(), ("CURRENTLY: " + move), attributeSet);
 
             //SCOREBOARD
             attributeSet = new SimpleAttributeSet();

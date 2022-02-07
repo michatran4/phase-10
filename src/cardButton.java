@@ -1,7 +1,4 @@
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class cardButton extends JButton {
     private boolean selected;
@@ -23,7 +20,6 @@ public class cardButton extends JButton {
         super(icon);
         selected = false;
     }
-
 
     public boolean isSelected()
     {

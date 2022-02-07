@@ -18,8 +18,10 @@ public class PhaseTen {
     private DeckManager deckManager;
     private PlayerManager playerManager;
     private MiddlePileManager middlePileManager;
+    private GUI gui;
 
     public PhaseTen(boolean b) {
+        gui = new GUI();
         DEBUGGING = b;
         skipped = new HashSet<>();
         hitting = new HashSet<>();
@@ -60,10 +62,10 @@ public class PhaseTen {
 
     private void initPlayers() {
         deckManager = new DeckManager(DEBUGGING);
-        deckManager.put("Player 1", new PlayerDeck(false));
-        deckManager.put("CPU 1", new CPUDeck(false));
-        deckManager.put("CPU 2", new CPUDeck(false));
-        deckManager.put("CPU 3", new CPUDeck(false));
+        deckManager.put("Player 1", new PlayerDeck(false)); // playerCardPanel
+        deckManager.put("CPU 1", new CPUDeck(false)); // leftPanel
+        deckManager.put("CPU 2", new CPUDeck(false)); // topPanel
+        deckManager.put("CPU 3", new CPUDeck(false)); // rightPanel
 
         playerManager = new PlayerManager();
         playerManager.add("Player 1");

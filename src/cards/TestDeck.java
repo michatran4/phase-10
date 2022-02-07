@@ -4,9 +4,12 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
+/**
+ * Test deck functionality.
+ */
 public class TestDeck {
-    CPUDeck cpuDeck;
-    PlayerDeck playerDeck;
+    final CPUDeck cpuDeck;
+    final PlayerDeck playerDeck;
 
     public TestDeck() {
         cpuDeck = new CPUDeck(true);
@@ -45,14 +48,14 @@ public class TestDeck {
         assertEquals(108, playerDeck.getSize());
         assertEquals(108, playerDeck.toString().split(",").length);
         for (int i = 1; i <= 12; i++) {
-            playerDeck.removeCardsWithNum(i);
+            playerDeck.removeCardsWithNum(i, Integer.MAX_VALUE);
             int removed = i * 8;
             assertEquals(108 - removed, playerDeck.getSize());
             assertEquals(108 - removed, playerDeck.toString().split(",").length);
         }
-        playerDeck.removeCardsWithNum(13); // skips
+        playerDeck.removeCardsWithNum(13, Integer.MAX_VALUE); // skips
         assertEquals(8, playerDeck.getSize());
-        playerDeck.removeCardsWithNum(14); // wilds
+        playerDeck.removeCardsWithNum(14, Integer.MAX_VALUE); // wilds
         assertEquals(0, playerDeck.getSize());
     }
 

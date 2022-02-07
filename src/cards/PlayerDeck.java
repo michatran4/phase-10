@@ -53,10 +53,6 @@ public class PlayerDeck {
      * histogram in the CPUDeck.
      * <p>
      * This is for number sets, and only removes the number cards.
-     *
-     * @param number the number to match
-     * @param count  how many number sets
-     * @return the removed cards
      */
     public LinkedList<Card> removeCardsWithNum(int number, int count) {
         if (DEBUGGING) {
@@ -80,32 +76,19 @@ public class PlayerDeck {
                 }
             }
         }
-        if (countRemoved != count) {
-            throw new IllegalArgumentException("Histogram calculation error.");
-        }
-        if (removed.size() != count) {
-            throw new IllegalStateException();
-        }
-        prune();
-        size -= count;
-        if (DEBUGGING) {
-            System.out.println("After remove: " + deck);
-        }
-        return removed;
-    }
-
-    public LinkedList<Card> removeCardsWithNum(int number) {
-        LinkedList<Card> removed = new LinkedList<>();
-        for (Card card: deck.keySet()) {
-            if (card.getNum() == number) {
-                while (deck.get(card) != 0) { // exhaust card supply
-                    deck.put(card, deck.get(card) - 1);
-                    removed.add(card);
-                }
+        if (count != Integer.MAX_VALUE) {
+            if (countRemoved != count) {
+                throw new IllegalArgumentException("Histogram calculation error.");
+            }
+            if (removed.size() != count) {
+                throw new IllegalStateException();
             }
         }
         prune();
         size -= removed.size();
+        if (DEBUGGING) {
+            System.out.println("After remove: " + deck);
+        }
         return removed;
     }
 
@@ -116,10 +99,6 @@ public class PlayerDeck {
      * color histogram in the CPUDeck.
      * <p>
      * This is for color sets.
-     *
-     * @param color the color to match
-     * @param count how many color sets
-     * @return the removed cards
      */
     public LinkedList<Card> removeCardsWithColor(String color, int count) {
         LinkedList<Card> removed = new LinkedList<>();
@@ -140,26 +119,12 @@ public class PlayerDeck {
                 }
             }
         }
-        if (countRemoved != count) {
-            throw new IllegalStateException("Color histogram calculation error.");
-        }
-        if (removed.size() != count) {
-            throw new IllegalStateException();
-        }
-        prune();
-        size -= count;
-        return removed;
-    }
-
-    public LinkedList<Card> removeCardsWithColor(String color) {
-        LinkedList<Card> removed = new LinkedList<>();
-        for (Card card: deck.keySet()) {
-            if (card.getColor() == null) continue;
-            if (card.getColor().equals(color)) {
-                while (deck.get(card) != 0) { // exhaust card supply
-                    deck.put(card, deck.get(card) - 1);
-                    removed.add(card);
-                }
+        if (count != Integer.MAX_VALUE) {
+            if (countRemoved != count) {
+                throw new IllegalStateException("Color histogram calculation error.");
+            }
+            if (removed.size() != count) {
+                throw new IllegalStateException();
             }
         }
         prune();
@@ -193,6 +158,10 @@ public class PlayerDeck {
         return output.toString();
     }
 
+    /**
+     * Compute scores according to cards in the deck's value.
+     * @return the sum to be logged in the player manager
+     */
     public int getScore() {
         int sum = 0;
         for (Card c: deck.keySet()) {
@@ -222,6 +191,9 @@ public class PlayerDeck {
         return deck;
     }
 
+    /**
+     * @return total cards in the deck
+     */
     public int getSize() {
         return size;
     }

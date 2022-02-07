@@ -91,12 +91,17 @@ public class MiddlePile {
         if (histogram.containsKey(14)) {
             wildCards = histogram.get(14);
         }
-        int minimum = histogram.keySet().iterator().next();
+        int minimum = histogram.keySet().iterator().next(); // minimum number
         if (DEBUGGING) {
             System.out.println("New run map created.");
             System.out.println("Minimum: " + minimum);
         }
-        if (wildCards == 0) {
+        for (int check: run.keySet()) {
+            if (check > 12) { // double check TODO
+                throw new IllegalStateException();
+            }
+        }
+        if (wildCards == 0) { // perfect run without wild cards
             for (int i = minimum; i < minimum + rule.getNumCards(); i++) {
                 Card card = getCardWithNum(i);
                 if (card == null) throw new IllegalStateException();
@@ -112,7 +117,7 @@ public class MiddlePile {
                     System.out.println("Checking numbers loop");
                 }
                 Card card = getCardWithNum(i);
-                if (card == null) {
+                if (card == null) { // use wild
                     if (wildCards < 1) throw new IllegalStateException();
                     run.put(i, new Card("WILD"));
                     wildCards--;
@@ -120,7 +125,7 @@ public class MiddlePile {
                         System.out.println("New run key (Card not found, used wild): " + i);
                     }
                 }
-                else {
+                else { // use it normally
                     run.put(i, card);
                     if (DEBUGGING) {
                         System.out.println("New run key (2): " + i);
@@ -144,7 +149,13 @@ public class MiddlePile {
         }
     }
 
+    /**
+     * @return the available numbers to add to the middle pile for a number run
+     */
     public Set<Integer> getAvailableNums() {
+        if (!(rule instanceof NumberRun)) {
+            throw new UnsupportedOperationException();
+        }
         Set<Integer> unfilled = new TreeSet<>();
         Set<Integer> filled = run.keySet();
         if (DEBUGGING) {
@@ -171,6 +182,9 @@ public class MiddlePile {
         throw new IllegalStateException("A stack must contain a non wild card.");
     }
 
+    /**
+     * @return the first normal card, to find if a card can be hit in the pile
+     */
     public Card getFirstNormalCard() {
         return cards.get(getIndexOfFirstNormalCard());
     }
@@ -182,7 +196,7 @@ public class MiddlePile {
      * @param add   add the card to pile, or if it's just a peek test
      * @return if the card was added successfully (or addable)
      */
-    public boolean addCard(Card toAdd, boolean add) { // TODO test
+    public boolean addCard(Card toAdd, boolean add) {
         if (DEBUGGING) {
             System.out.println("Middle pile: " + this);
             if (!add) System.out.println("Test add");
@@ -192,6 +206,7 @@ public class MiddlePile {
             throw new IllegalStateException("Cannot add skips.");
         }
         if (rule instanceof NumberSet || rule instanceof ColorSet) {
+            // for these sets, check if a card matches another one in the pile
             if (DEBUGGING) {
                 System.out.println("Checking " + rule.getClass());
                 System.out.println(rule);
@@ -279,10 +294,16 @@ public class MiddlePile {
         return false;
     }
 
+    /**
+     * @return the rule that the pile is using
+     */
     public Rule getRule() {
         return rule;
     }
 
+    /**
+     * @return the cards in the pile
+     */
     public String toString() {
         if (cards.size() == 0) return "[]";
         StringBuilder output = new StringBuilder("[");

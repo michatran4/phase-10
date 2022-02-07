@@ -4,6 +4,9 @@ import cards.Card;
 
 import java.util.LinkedList;
 
+/**
+ * This represents a player's turn.
+ */
 public class Turn {
     private final LinkedList<Card> droppedCards;
     private final Card discardCard;
@@ -26,14 +29,27 @@ public class Turn {
         hitCards = new LinkedList<>(hit);
     }
 
+    /**
+     * Dropped cards are meant to be put inside a new middle pile, and they complete a phase.
+     * @return the dropped cards, which should be in order.
+     */
     public LinkedList<Card> getDroppedCards() {
         return droppedCards;
     }
 
+    /**
+     * Turns with dropped cards may not have discard cards.
+     * However, turns with hit cards will have discard cards.
+     * @return the card to end the turn
+     */
     public Card getDiscardCard() {
         return discardCard;
     }
 
+    /**
+     * Hit cards are cards that are to be stacked on to middle piles.
+     * @return the hit cards, which should be able to be hit
+     */
     public LinkedList<Card> getHitCards() {
         return hitCards;
     }

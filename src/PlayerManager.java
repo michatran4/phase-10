@@ -76,6 +76,11 @@ public class PlayerManager {
         return winner;
     }
 
+    /**
+     * Adds to a player's score.
+     * @param player the player to add to
+     * @param score the score to add
+     */
     public void addScore(String player, int score) {
         scoreboard.put(player, scoreboard.get(player) + score);
     }

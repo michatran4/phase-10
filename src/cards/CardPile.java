@@ -5,8 +5,7 @@ import java.util.Collections;
 import java.util.Stack;
 
 /**
- * This represents a card pile acting like a stack, which is the discard pile
- * or the original pile.
+ * This represents a card pile acting like a stack, which is the discard pile or the draw pile.
  */
 public class CardPile {
     private final Stack<Card> pile;
@@ -17,6 +16,7 @@ public class CardPile {
         drawDeck = draw;
     }
 
+    // TODO use with the GUI
     public boolean isDrawDeck() {
         return drawDeck;
     }

@@ -3,6 +3,9 @@
  */
 public class CLI {
     public static void main(String[] args) {
-        PhaseTen game = new PhaseTen(true);
+        //while (true) {
+            new PhaseTen(false);
+        //}
+        //PhaseTen game = new PhaseTen(true);
     }
 }

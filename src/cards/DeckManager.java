@@ -3,6 +3,9 @@ package cards;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * This manages the decks of players and also reports if there is an empty deck.
+ */
 public class DeckManager {
     private final Map<String, PlayerDeck> deckMap;
     private final boolean DEBUGGING;

@@ -21,10 +21,6 @@ import java.util.TreeMap;
 public class TurnValidator {
     private final boolean DEBUGGING;
 
-    public TurnValidator() {
-        DEBUGGING = false;
-    }
-
     public TurnValidator(boolean b) {
         DEBUGGING = b;
     }
@@ -76,6 +72,7 @@ public class TurnValidator {
         for (Rule rule: phase.getRules()) {
             // remove cards for each phase if they work
             if (rule instanceof NumberSet) {
+                // use a histogram because combinations of sets can exist
                 int ruleCount = rule.getCount();
                 for (int num: histogram.keySet()) {
                     int count = histogram.get(num);
@@ -181,6 +178,7 @@ public class TurnValidator {
                     System.out.println("Adjusted: " + firstNum);
                 }
 
+                // check runs, after the first number has been adjusted properly
                 for (int i = 0; i < rule.getNumCards(); i++) {
                     if (histogram.get(firstNum + i) == null) {
                         if (wildCards > 0) {
@@ -212,7 +210,7 @@ public class TurnValidator {
                     }
                 }
             }
-            else { // color set
+            else { // color sets, where all cards should just be the same color
                 int numCards = rule.getNumCards();
                 if (numCards != dropped.size()) {
                     if (DEBUGGING) {
@@ -220,7 +218,6 @@ public class TurnValidator {
                     }
                     return false;
                 }
-                // all cards should be the same color
 
                 Card normal = null;
                 for (Card card: dropped) { // find first normal card to compare
@@ -256,8 +253,6 @@ public class TurnValidator {
 
     /**
      * Validates cards that are hit on to the middle piles.
-     * Do not validate the CPU deck's moves, because it will have to add
-     * preceding cards to runs, and that ruins the point of validation.
      *
      * @param turn              the turn to validate
      * @param middlePileManager the middle piles to check with

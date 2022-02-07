@@ -11,7 +11,6 @@ import java.util.*;
  * Instead, it should be using remove methods.
  */
 public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
-    // TODO Debugging and print
     public final Map<Card, Integer> deck;
     private final boolean DEBUGGING;
 
@@ -96,7 +95,6 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
                          */
                         // wild card usage because it is insufficient
                         else if (count + wildCards >= rule.getNumCards()) {
-                            // TODO test with count cards
                             int decrement = rule.getNumCards() - count;
                             dropped.addAll(removeCardsWithNum(num, count));
                             wildCards -= decrement;
@@ -108,7 +106,7 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
                     }
                     if (ruleCount != 0) { // insufficient
                         // add back cards. there weren't enough to complete
-                        for (Card c: dropped) { // TODO test
+                        for (Card c: dropped) {
                             addCard(c);
                         }
                         dropped.clear();
@@ -119,7 +117,6 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
                     while (histogram.values().remove(0)) ;
                 }
                 else if (rule instanceof ColorSet) { // remove cards of color
-                    // TODO test
                     // create a color histogram
                     Map<String, Integer> colors = new TreeMap<>();
                     for (Card card: deck.keySet()) {
@@ -195,17 +192,14 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
                             if (histogram.get(foundNum + i) != null) {
                                 // histogram modification doesn't matter as
                                 // runs are always the last rule
-                                runDrop.addAll(
-                                        removeCardsWithNum(foundNum + i,
-                                                1));
+                                runDrop.addAll(removeCardsWithNum(foundNum + i, 1));
                             }
                             else {
                                 if (foundNum + i > 12) {
                                     runDrop.addAll(0, removeCardsWithNum(14, 1));
                                 }
                                 else {
-                                    runDrop.addAll(
-                                            removeCardsWithNum(14, 1));
+                                    runDrop.addAll(removeCardsWithNum(14, 1));
                                 }
                             }
                         }
@@ -307,7 +301,6 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
                 else {
                     // number runs and color runs require opposite strategy, discard the highest
                     // keep wilds, however
-                    // TODO better algorithm
                     int cardNum = -1;
                     int highestCount = Integer.MIN_VALUE;
                     for (int num: histogram.keySet()) {
@@ -353,12 +346,11 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
      * discarded card
      */
     public Turn getNextTurn(MiddlePileManager middlePileManager) {
-        // TODO test
         LinkedList<Card> hit = new LinkedList<>();
         for (MiddlePile middlePile: middlePileManager.getMiddlePiles()) {
-            if (getSize() == 1) break;
+            if (getSize() == 1) break; // one card remaining no hits, just discard
             Rule rule = middlePile.getRule();
-            if (rule instanceof NumberRun) {
+            if (rule instanceof NumberRun) { // must be in bounds
                 TreeMap<Integer, Integer> histogram = getHistogram();
                 histogram.remove(13); // ignore skip card usage in main logic
                 if (DEBUGGING) {
@@ -366,9 +358,10 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
                     System.out.println("Available nums: " + middlePile.getAvailableNums());
                     System.out.println("Current deck: " + deck);
                 }
+                // find available numbers in the middle pile to fill with the current deck
                 Set<Integer> set = middlePile.getAvailableNums();
                 for (int i: set) {
-                    if (histogram.containsKey(i)) {
+                    if (histogram.containsKey(i)) { // if card exists
                         if (histogram.get(i) < 1) throw new IllegalStateException();
                         histogram.put(i, histogram.get(i) - 1);
                         hit.addAll(removeCardsWithNum(i, 1));
@@ -376,10 +369,12 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
                             System.out.println("adding middle: " + hit.getLast().toString());
                         }
                     }
-                    else if (histogram.containsKey(14) && histogram.get(14) > 0) { // wilds
+                    else if (histogram.containsKey(14) && histogram.get(14) > 0) { // wilds too
                         histogram.put(14, histogram.get(14) - 1);
                         hit.addAll(removeCardsWithNum(14, 1));
-                        System.out.println("adding wild to middle: " + hit.getLast().toString());
+                        if (DEBUGGING) {
+                            System.out.println("adding wild to middle: " + hit.getLast().toString());
+                        }
                     }
                 }
                 // prune before more middle piles are checked
@@ -393,15 +388,18 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
                 }
                 Card normal = middlePile.getFirstNormalCard();
                 if (rule instanceof ColorSet) {
-                    hit.addAll(removeCardsWithColor(normal.getColor()));
+                    hit.addAll(removeCardsWithColor(normal.getColor(), Integer.MAX_VALUE));
                 }
                 if (rule instanceof NumberSet) {
-                    hit.addAll(removeCardsWithNum(normal.getNum()));
+                    hit.addAll(removeCardsWithNum(normal.getNum(), Integer.MAX_VALUE));
                 }
             }
         }
+        // check to have at least one card to discard
         if (deck.size() == 0) {
-            System.out.println("adding card back to discard");
+            if (DEBUGGING) {
+                System.out.println("adding card back to discard");
+            }
             addCard(hit.poll());
         }
         Card discard = getDiscardCard(null);

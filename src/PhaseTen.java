@@ -27,7 +27,7 @@ public class PhaseTen {
         initPiles();
         drawPile.shuffle();
         initPlayers();
-        turnValidator = new TurnValidator(true);
+        turnValidator = new TurnValidator(DEBUGGING);
         startGame();
     }
 
@@ -93,16 +93,12 @@ public class PhaseTen {
             skipped.add(playerManager.peek());
         }
         while (true) {
-            play();
-            updateScores();
-            System.out.println();
-            if (DEBUGGING) {
-                // TODO GUI
-                System.out.println(playerManager.getScoreboard());
-            }
-            System.out.println("Current winner: " + playerManager.getWinner());
+            play(); // play until an empty deck
+            updateScores(); // update scores
+            // TODO GUI
+            System.out.println("Round ended. New scores: ");
+            System.out.println(playerManager.getScoreboard());
             if (!playerManager.getWinner().equals("")) {
-                // TODO GUI
                 System.out.println("WINNER: " + playerManager.getWinner());
                 break;
             }
@@ -134,17 +130,16 @@ public class PhaseTen {
                     System.out.println(middlePileManager.toString());
                     System.out.println("New player: " + player);
                 }
-                if (drawPile.isEmpty()) {
+                if (drawPile.isEmpty()) { // checking if piles are bad
                     drawPile.addAll(discardPile.getPile());
                     discardPile.clear();
                 }
-                if (skipped.contains(player)) {
+                if (skipped.contains(player)) { // skip the player
                     skipped.remove(player);
                     continue;
                 }
                 if (player.contains("CPU")) {
-                    Phase phase =
-                            phases.getPhase(playerManager.getPhase(player));
+                    Phase phase = phases.getPhase(playerManager.getPhase(player));
                     CPUDeck deck = (CPUDeck) deckManager.get(player);
                     // CPU automatically draws from the draw pile
                     Card added = drawPile.pop();
@@ -156,7 +151,7 @@ public class PhaseTen {
                     }
                     // TODO don't do this if you can implement an algorithm
                     Turn turn;
-                    if (hitting.contains(player)) {
+                    if (hitting.contains(player)) { // can hit, use middle piles to make a turn
                         turn = deck.getNextTurn(middlePileManager);
                         if (DEBUGGING) {
                             System.out.println(turn.toString());
@@ -168,7 +163,7 @@ public class PhaseTen {
                         }
                         addHitsAndDiscard(turn, player);
                     }
-                    else {
+                    else { // can't hit, do a normal turn
                         if (DEBUGGING) {
                             System.out.println("Current phase: " + phase.toString());
                         }
@@ -183,7 +178,7 @@ public class PhaseTen {
                         }
 
                         Turn hit = null;
-                        if (turn.getDroppedCards().size() != 0) {
+                        if (turn.getDroppedCards().size() != 0) { // valid phase play, create piles
                             LinkedList<Card> dropped = turn.getDroppedCards();
                             for (Rule rule: phase.getRules()) {
                                 for (int i = 0; i < rule.getCount(); i++) {
@@ -192,8 +187,7 @@ public class PhaseTen {
                                         System.out.println("Creating a new middle pile:");
                                         System.out.println(rule);
                                     }
-                                    LinkedList<Card> middle =
-                                            new LinkedList<>();
+                                    LinkedList<Card> middle = new LinkedList<>();
                                     for (int j = 0; j < rule.getNumCards(); j++) {
                                         Card inOrder = dropped.poll();
                                         if (inOrder == null)
@@ -213,7 +207,7 @@ public class PhaseTen {
                             if (dropped.size() != 0) {
                                 throw new IllegalStateException();
                             }
-                            // hit on the same turn
+                            // hit on the same turn as a valid phase play
                             playerManager.incrementPhase(player);
                             hitting.add(player);
                             hit = deck.getNextTurn(middlePileManager);

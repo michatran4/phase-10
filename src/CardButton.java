@@ -1,21 +1,17 @@
+import cards.Card;
+
 import javax.swing.*;
 
-public class cardButton extends JButton {
+public class CardButton extends JButton {
     private boolean selected;
 
-    public cardButton()
-    {
-        super();
-        selected = false;
-    }
-
-    public cardButton(String s)
+    public CardButton(String s)
     {
         super(s);
         selected = false;
     }
 
-    public cardButton(ImageIcon icon)
+    public CardButton(ImageIcon icon)
     {
         super(icon);
         selected = false;

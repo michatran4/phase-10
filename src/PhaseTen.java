@@ -146,6 +146,7 @@ public class PhaseTen {
                     // CPU automatically draws from the draw pile
                     Card added = drawPile.pop();
                     deck.addCard(added);
+                    updateCPUDeckGUI(player);
                     if (DEBUGGING) {
                         System.out.println("Card added: " + added.toString());
                         System.out.println(deck);
@@ -232,6 +233,14 @@ public class PhaseTen {
             }
         }
         hitting.clear();
+    }
+
+    private void updateCPUDeckGUI(String cpu) {
+        switch (cpu) {
+            case "CPU 1" -> {gui.setCards("left", deckManager.get("CPU 1").getSize());}
+            case "CPU 2" -> {gui.setCards("top", deckManager.get("CPU 2").getSize());}
+            case "CPU 3" -> {gui.setCards("right", deckManager.get("CPU 3").getSize());}
+        }
     }
 
     /**

@@ -125,6 +125,7 @@ public class GUI {
         {
             StyleConstants.setFontSize(attributeSet, 32);
             StyleConstants.setBold(attributeSet, true);
+            StyleConstants.setItalic(attributeSet, true);
             StyleConstants.setUnderline(attributeSet, true);
             StyleConstants.setFontFamily(attributeSet, "Magneto");
             StyleConstants.setForeground(attributeSet, Color.BLUE);
@@ -134,16 +135,17 @@ public class GUI {
             attributeSet = new SimpleAttributeSet();
             StyleConstants.setFontSize(attributeSet, 20);
             StyleConstants.setBold(attributeSet, true);
+            StyleConstants.setItalic(attributeSet, true);
             StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
-            doc.insertString(doc.getLength(), ("CURRENTLY: " + move), attributeSet);
+            doc.insertString(doc.getLength(), ("\n" + move + "\n\n"), attributeSet);
 
             //SCOREBOARD
             attributeSet = new SimpleAttributeSet();
-            StyleConstants.setFontSize(attributeSet, 24);
+            StyleConstants.setFontSize(attributeSet, 16);
             StyleConstants.setBold(attributeSet, true);
             StyleConstants.setItalic(attributeSet, true);
             StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
-            doc.insertString(doc.getLength(), ("Scoreboard\n\n"), attributeSet);
+            doc.insertString(doc.getLength(), ("Scoreboard\n"), attributeSet);
 
             attributeSet = new SimpleAttributeSet();
             StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
@@ -160,7 +162,7 @@ public class GUI {
             StyleConstants.setBold(attributeSet, true);
             StyleConstants.setItalic(attributeSet, true);
             StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
-            doc.insertString(doc.getLength(), ("\nCompleted Phase Sets\n\n"), attributeSet);
+            doc.insertString(doc.getLength(), ("\nCompleted Phase Sets\n"), attributeSet);
 
             attributeSet = new SimpleAttributeSet();
             StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
@@ -699,16 +701,21 @@ public class GUI {
         }
     }
 
-    // 1) Player must draw a card.
+    // 1) Player must draw a card. Allowed to draw from discard and draw pile.
     private void playerDraw()
     {
-        drawPile.setBorder(BorderFactory.createLineBorder(Color.yellow, 5));
+        //display on menu player is drawing.
+        move = "Player 1 is drawing";
+        setupMenu();
+
+        //enable player to draw from draw pile
+        drawPile.setBorder(BorderFactory.createLineBorder(Color.CYAN, 7)); //highlight pile
         drawPile.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 System.out.println("Player has drawn a card!\n");
 
-                cardButton card = new cardButton("drawn card");
+                cardButton card = new cardButton("drawn card"); //should be set to top card of draw pile
                 card.setBorder(BorderFactory.createEmptyBorder());
                 card.setPreferredSize(new Dimension((int) (cardWidth * .9), (int) (cardHeight * .9)));
                 playerCards.add(card);
@@ -718,8 +725,38 @@ public class GUI {
                 for(ActionListener al : drawPile.getActionListeners()) {
                     drawPile.removeActionListener(al);
                 }
+                //Disable discardPile button
+                for(ActionListener al : discardPile.getActionListeners()) {
+                    discardPile.removeActionListener(al);
+                }
                 drawPile.setBorder(BorderFactory.createEmptyBorder()); //remove highlight from drawPile
+                discardPile.setBorder(BorderFactory.createEmptyBorder()); //remove highlight from discardPile
+                playerTurn(); //draw step over
+            }
+        });
+        //enable player to draw from discard pile
+        discardPile.setBorder(BorderFactory.createLineBorder(Color.CYAN, 7)); //highlight pile
+        discardPile.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("Player has drawn a card!\n");
 
+                cardButton card = new cardButton("drawn card"); //really set it to whatever card is on the discard pile at the moment
+                card.setBorder(BorderFactory.createEmptyBorder());
+                card.setPreferredSize(new Dimension((int) (cardWidth * .9), (int) (cardHeight * .9)));
+                playerCards.add(card);
+                updatePlayerCardPanel();
+
+                //Disable drawPile button
+                for(ActionListener al : drawPile.getActionListeners()) {
+                    drawPile.removeActionListener(al);
+                }
+                //Disable discardPile button
+                for(ActionListener al : discardPile.getActionListeners()) {
+                    discardPile.removeActionListener(al);
+                }
+                drawPile.setBorder(BorderFactory.createEmptyBorder()); //remove highlight from drawPile
+                discardPile.setBorder(BorderFactory.createEmptyBorder()); //remove highlight from discardPile
                 playerTurn(); //draw step over
             }
         });
@@ -728,6 +765,10 @@ public class GUI {
     // 2) Player decides to either discard or add set/hit
     private void playerTurn()
     {
+        //update move
+        move = "Player 1's move...";
+        setupMenu();
+
         toggleCardSelection(); //make cards selectable
 
         //Enables player buttons as options for player

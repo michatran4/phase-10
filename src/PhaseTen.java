@@ -18,10 +18,9 @@ public class PhaseTen {
     private DeckManager deckManager;
     private PlayerManager playerManager;
     private MiddlePileManager middlePileManager;
-    private GUI gui;
+    private final GUI gui;
 
     public PhaseTen(boolean b) {
-        gui = new GUI();
         DEBUGGING = b;
         skipped = new HashSet<>();
         hitting = new HashSet<>();
@@ -29,8 +28,18 @@ public class PhaseTen {
         initPiles();
         drawPile.shuffle();
         initPlayers();
+        gui = new GUI(getVariables());
+        initDecks();
         turnValidator = new TurnValidator(DEBUGGING);
         startGame();
+    }
+
+    private HashMap<String, String> getVariables() {
+        HashMap<String, String> vars = new HashMap<>();
+        vars.put("status", "New game!");
+        vars.put("scoreboard", playerManager.getScoreboard());
+        vars.put("phases", playerManager.getPhases());
+        return vars;
     }
 
     private void initPhaseCollection() {
@@ -72,8 +81,14 @@ public class PhaseTen {
         playerManager.add("CPU 1");
         playerManager.add("CPU 2");
         playerManager.add("CPU 3");
+    }
 
+    private void initDecks() {
         dealCards();
+        updateCPUDeckGUI("CPU 1");
+        updateCPUDeckGUI("CPU 2");
+        updateCPUDeckGUI("CPU 3");
+        updatePlayerDeckGUI();
     }
 
     private void dealCards() {
@@ -127,6 +142,8 @@ public class PhaseTen {
             }
             for (int num = 0; num < playerManager.getNumPlayers(); num++) {
                 String player = playerManager.getNextPlayer();
+                gui.updateStatus("It is now " + player + "'s turn.");
+                sleep();
                 if (DEBUGGING) {
                     System.out.println("Current middle piles: ");
                     System.out.println(middlePileManager.toString());
@@ -147,6 +164,8 @@ public class PhaseTen {
                     Card added = drawPile.pop();
                     deck.addCard(added);
                     updateCPUDeckGUI(player);
+                    gui.updateStatus(player + " has drawn from the draw pile.");
+                    sleep();
                     if (DEBUGGING) {
                         System.out.println("Card added: " + added.toString());
                         System.out.println(deck);
@@ -164,6 +183,8 @@ public class PhaseTen {
                         if (!(turnValidator.validate(turn, middlePileManager))) {
                             throw new IllegalStateException();
                         }
+                        gui.updateStatus(player + " is hitting cards.");
+                        sleep();
                         addHitsAndDiscard(turn, player);
                     }
                     else { // can't hit, do a normal turn
@@ -182,6 +203,8 @@ public class PhaseTen {
 
                         Turn hit = null;
                         if (turn.getDroppedCards().size() != 0) { // valid phase play, create piles
+                            gui.updateStatus(player + " has found a playable phase.");
+                            sleep();
                             LinkedList<Card> dropped = turn.getDroppedCards();
                             for (Rule rule: phase.getRules()) {
                                 for (int i = 0; i < rule.getCount(); i++) {
@@ -219,10 +242,15 @@ public class PhaseTen {
                                 System.out.println("Hitting turn: " +
                                         hit.toString());
                             }
+                            gui.updateStatus(player + " has advanced to the next phase.");
+                            sleep();
                         }
                         addHitsAndDiscard(Objects.requireNonNullElse(hit,
                                 turn), player);
                     }
+                    updateCPUDeckGUI(player);
+                    gui.updateStatus(player + " has finished their turn.");
+                    sleep();
                 }
                 else {
                     // TODO integrate with GUI, check correct phase
@@ -233,6 +261,17 @@ public class PhaseTen {
             }
         }
         hitting.clear();
+    }
+
+    private void sleep() {
+        try {
+            Thread.sleep(1000);
+        }
+        catch (InterruptedException ignored) {}
+    }
+
+    private void updatePlayerDeckGUI() {
+        gui.setCards(deckManager.get("Player 1").getCreatedDeck());
     }
 
     private void updateCPUDeckGUI(String cpu) {
@@ -280,6 +319,7 @@ public class PhaseTen {
         if (turn.getDiscardCard().toString().equals("SKIP")) {
             skipped.add(findSmallestDeck(player));
         }
+        // TODO update discard pile GUI
     }
 
     /**

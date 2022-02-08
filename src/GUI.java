@@ -10,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 public class GUI {
@@ -31,24 +32,27 @@ public class GUI {
     private JPanel centerPanel, centerLeftPanel, centerRightPanel; //center panel
     private CardButton drawPile, discardPile; //cardButton is a class that extends JButton. Anything that shows as a card is a cardButton
     private JButton setButton, hitButton; //buttons in botPanel of player usage
-    private JTextPane scoreboard; //side menu text displaying scores
     private ArrayList<CardButton> selectedCards; //cards that currently selected by the user
     private ArrayList<JPanel> completedSetPanels; //panels that are added into the completed phase set area (centerRightPanel)
     private int numSetsCompleted, rows, cols; //necessary variables for phase rounds
-    private String move; //display game progression, what moves each player is doing.
-    // private HashMap<String, > TODO gui components accessible by a string
+    private HashMap<String, String> components;// text components of the gui that can be changed
 
     //Basic setup of the frame container, panels, card piles (buttons)
-    public GUI() {
-        move = "";
+    public GUI(HashMap<String, String> vars) {
+        components = new HashMap<>(vars);
         setupFrame(); //Set up main container frame of all panels
         setupParentPanels(); //Set up 2 parent panels to separate the physical board game and
         // side menu for score and instructions.
-        setupMenu();
+        refreshMenu();
         setupPlayerPanels(); //Setup up 5 panels, 3 cpu, 1 player, 1 center panel for card piles
         setupCenterPanel(); //Setup centerPanel discard and draw card piles
         newRound(); //Setup card distribution
         frame.setVisible(true);
+    }
+
+    public void updateStatus(String status) {
+        components.put("status", status);
+        refreshMenu();
     }
 
     //Set up main container frame of all panels; utilizes borderLayout manager
@@ -79,17 +83,11 @@ public class GUI {
     }
 
     //Setup menu panel on the side of the screen adding instructions (JLabel Image) and scoreboard (JTextPane)
-    private void setupMenu() {
+    private void refreshMenu() {
         menuPanel.removeAll();
 
-        //Setup scoreboard
-        scoreboard = new JTextPane();
-        //Replace 0's with actual scores from logic branch
-        int p1 = 0;
-        int p2 = 0;
-        int p3 = 0;
-        int p4 = 0;
-
+        //side menu text displaying scores
+        JTextPane scoreboard = new JTextPane();
         Font font = new Font("Dialog", Font.PLAIN, 20);
         scoreboard.setFont(font);
 
@@ -105,15 +103,14 @@ public class GUI {
             StyleConstants.setForeground(attributeSet, Color.BLUE);
             doc.insertString(doc.getLength(), ("Phase 10" + "\n"), attributeSet);
 
-            //Display what is going on. TODO
             attributeSet = new SimpleAttributeSet();
             StyleConstants.setFontSize(attributeSet, 20);
             StyleConstants.setBold(attributeSet, true);
             StyleConstants.setItalic(attributeSet, true);
             StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
-            doc.insertString(doc.getLength(), ("\n" + move + "\n\n"), attributeSet);
+            doc.insertString(doc.getLength(), String.format("\n%s\n\n", components.get("status")),
+                    attributeSet);
 
-            //SCOREBOARD TODO
             attributeSet = new SimpleAttributeSet();
             StyleConstants.setFontSize(attributeSet, 16);
             StyleConstants.setBold(attributeSet, true);
@@ -124,12 +121,7 @@ public class GUI {
             attributeSet = new SimpleAttributeSet();
             StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
             StyleConstants.setFontSize(attributeSet, 14);
-            doc.insertString(doc.getLength(), ("Player 1: " + p1 + "\n"), attributeSet);
-            doc.insertString(doc.getLength(), ("Player 2: " + p2 + "\n"), attributeSet);
-            doc.insertString(doc.getLength(), ("Player 3: " + p3 + "\n"), attributeSet);
-            doc.insertString(doc.getLength(), ("Player 4: " + p4 + "\n"), attributeSet);
-
-            //COMPLETED PHASE SETS
+            doc.insertString(doc.getLength(), components.get("scoreboard"), attributeSet);
 
             attributeSet = new SimpleAttributeSet();
             StyleConstants.setFontSize(attributeSet, 16);
@@ -141,16 +133,11 @@ public class GUI {
             attributeSet = new SimpleAttributeSet();
             StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
             StyleConstants.setFontSize(attributeSet, 14);
-            doc.insertString(doc.getLength(), ("Player 1: " + "\n"), attributeSet);
-            doc.insertString(doc.getLength(), ("Player 2: " + "\n"), attributeSet);
-            doc.insertString(doc.getLength(), ("Player 3: " + "\n"), attributeSet);
-            doc.insertString(doc.getLength(), ("Player 4: " + "\n"), attributeSet);
-
+            doc.insertString(doc.getLength(), components.get("phases"), attributeSet);
         } catch (BadLocationException e) {
             System.err.println("Could not insert such text into scoreboard");
         }
 
-        //Setup Instructions
         JLabel instructions = new JLabel();
         ImageIcon icon = new ImageIcon("phase10 instructions.png");
         icon = new ImageIcon(icon.getImage().getScaledInstance((int) menuSize.getWidth(), (int) (menuSize.getHeight() / 3), Image.SCALE_DEFAULT));
@@ -158,12 +145,14 @@ public class GUI {
 
         menuPanel.add(scoreboard);
         menuPanel.add(instructions);
+        menuPanel.revalidate();
+        menuPanel.repaint();
     }
 
     public void setCards(LinkedList<Card> cards) {
         playerCardPanel.removeAll();
         for (Card card: cards) {
-            CardButton cardButton = new CardButton(getIconFromName(card.toString()));
+            CardButton cardButton = new CardButton(card);
             cardButton.setBorder(BorderFactory.createEmptyBorder());
             cardButton.setPreferredSize(new Dimension((int) (cardWidth * .9), (int) (cardHeight * .9)));
             playerCardPanel.add(cardButton); // TODO add back player cards
@@ -173,70 +162,36 @@ public class GUI {
         playerCardPanel.repaint();
     }
 
-    private ImageIcon getIconFromName(String value) {
-        ImageIcon icon;
-        if (value.contains(" ")) {
-            String[] name = value.split(" ");
-            String color = name[0].toLowerCase();
-            String number;
-            switch (Integer.parseInt(name[1])) {
-                case 1 -> number = "one";
-                case 2 -> number = "two";
-                case 3 -> number = "three";
-                case 4 -> number = "four";
-                case 5 -> number = "five";
-                case 6 -> number = "six";
-                case 7 -> number = "seven";
-                case 8 -> number = "eight";
-                case 9 -> number = "nine";
-                case 10 -> number = "ten";
-                case 11 -> number = "eleven";
-                default -> number = "twelve";
-            }
-            icon = new ImageIcon(color +  " " + number);
-        }
-        else {
-            if (value.equals("WILD")) {
-                icon = new ImageIcon("wild.png");
-            }
-            else {
-                icon = new ImageIcon("skip.png");
-            }
-        }
-        return icon;
-    }
-
     public void setCards(String side, int num) {
         //CPU CARDS, all should be card backs, player should not be able to see other cards
         JPanel panel;
         ImageIcon icon;
         Dimension dimension;
+        int sideWidth = (int) (cardHeight * .3);
+        int sideHeight = (int) (cardWidth * .3);
         switch (side) {
-            case "top" -> {
+            case "top":
                 int topWidth = (int) (cardWidth * .5);
                 int topHeight = (int) (cardHeight * .5);
                 icon = new ImageIcon(cardBack180.getImage().getScaledInstance(topWidth, topHeight,
                         Image.SCALE_DEFAULT));
                 dimension = new Dimension(topWidth, topHeight);
                 panel = topPanel;
-            }
-            case "left" -> {
-                int sideWidth = (int) (cardHeight * .3);
-                int sideHeight = (int) (cardWidth * .3);
+                break;
+            case "left":
                 icon = new ImageIcon(cardBack90.getImage().getScaledInstance(sideWidth, sideHeight,
                         Image.SCALE_DEFAULT));
                 dimension = new Dimension(sideWidth, sideHeight);
                 panel = leftPanel;
-            }
-            case "right" -> {
-                int sideWidth = (int) (cardHeight * .3);
-                int sideHeight = (int) (cardWidth * .3);
+                break;
+            case "right":
                 icon = new ImageIcon(cardBack270.getImage().getScaledInstance(sideWidth, sideHeight,
                         Image.SCALE_DEFAULT));
                 dimension = new Dimension(sideWidth, sideHeight);
                 panel = rightPanel;
-            }
-            default -> throw new IllegalArgumentException();
+                break;
+            default:
+                throw new IllegalArgumentException();
         }
         panel.removeAll();
         for (int i = 0; i < num; i++) {
@@ -252,10 +207,10 @@ public class GUI {
     public void removeCard(String side, int num) { // remove a specified number of cards
         JPanel panel;
         switch (side) {
-            case "top" -> panel = topPanel;
-            case "left" -> panel = leftPanel;
-            case "right" -> panel = rightPanel;
-            default -> throw new IllegalArgumentException();
+            case "top": panel = topPanel; break;
+            case "left": panel = leftPanel; break;
+            case "right": panel = rightPanel; break;
+            default: throw new IllegalArgumentException();
         }
         for (int i = 0; i < num; i++) {
             panel.remove(0);
@@ -386,7 +341,7 @@ public class GUI {
         leftPanel.removeAll();
         rightPanel.removeAll();
 
-        setupMenu(); // scoreboard
+        // TODO update scoreboard properly
         centerLeftPanel.remove(discardPile); // update discard pile
         ImageIcon icon = new ImageIcon("yellow three.png");
         CardButton dCard = new CardButton(icon);
@@ -474,17 +429,15 @@ public class GUI {
     }
 
     // Game starts, manages player turns and determines round
-    private void game()
-    {
+    private void game() {
         //playerDraw();
     }
 
     // 1) Player must draw a card. Allowed to draw from discard and draw pile.
-    private void playerDraw()
-    {
+    private void playerDraw() {
         //display on menu player is drawing.
-        move = "Player 1 is drawing";
-        setupMenu();
+        updateStatus("Player 1 is drawing.");
+        // TODO update move properly
 
         //enable player to draw from draw pile
         drawPile.setBorder(BorderFactory.createLineBorder(Color.CYAN, 7)); //highlight pile
@@ -497,11 +450,11 @@ public class GUI {
             updatePlayerCardPanel();
 
             //Disable drawPile button
-            for(ActionListener al : drawPile.getActionListeners()) {
+            for (ActionListener al: drawPile.getActionListeners()) {
                 drawPile.removeActionListener(al);
             }
             //Disable discardPile button
-            for(ActionListener al : discardPile.getActionListeners()) {
+            for (ActionListener al: discardPile.getActionListeners()) {
                 discardPile.removeActionListener(al);
             }
             drawPile.setBorder(BorderFactory.createEmptyBorder()); //remove highlight from drawPile
@@ -520,11 +473,11 @@ public class GUI {
             updatePlayerCardPanel();
 
             //Disable drawPile button
-            for(ActionListener al : drawPile.getActionListeners()) {
+            for (ActionListener al: drawPile.getActionListeners()) {
                 drawPile.removeActionListener(al);
             }
             //Disable discardPile button
-            for(ActionListener al : discardPile.getActionListeners()) {
+            for (ActionListener al: discardPile.getActionListeners()) {
                 discardPile.removeActionListener(al);
             }
             drawPile.setBorder(BorderFactory.createEmptyBorder()); //remove highlight from drawPile
@@ -536,13 +489,8 @@ public class GUI {
     }
 
     // 2) Player decides to either discard or add set/hit
-    private void playerTurn()
-    {
-        //update move
-        move = "Player 1's move...";
-        setupMenu();
+    private void playerTurn() {
         toggleCardSelection(); //make cards selectable
-
         //Enables player buttons as options for player
         /*
         if (numSetsCompleted < numSetsNeeded)
@@ -662,16 +610,20 @@ public class GUI {
                     }
 
                     @Override
-                    public void mousePressed(MouseEvent e) {}
+                    public void mousePressed(MouseEvent e) {
+                    }
 
                     @Override
-                    public void mouseReleased(MouseEvent e) {}
+                    public void mouseReleased(MouseEvent e) {
+                    }
 
                     @Override
-                    public void mouseEntered(MouseEvent e) {}
+                    public void mouseEntered(MouseEvent e) {
+                    }
 
                     @Override
-                    public void mouseExited(MouseEvent e) {}
+                    public void mouseExited(MouseEvent e) {
+                    }
                 });
             }
         }

@@ -95,6 +95,16 @@ public class PlayerManager {
         return output.toString();
     }
 
+    public String getPhases() {
+        StringBuilder output = new StringBuilder();
+        for (String player: scoreboard.keySet()) {
+            output.append(player)
+                    .append(" - ")
+                    .append(phaseMap.get(player)).append("\n");
+        }
+        return output.toString();
+    }
+
     /**
      * Advances a player to the next phase.
      *

@@ -1,10 +1,6 @@
 import cards.Card;
 
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -30,28 +26,42 @@ public class GUI {
     private JPanel boardPanel, menuPanel; //main parent panels
     private JPanel topPanel, leftPanel, rightPanel, botPanel, playerCardPanel; //player panels
     private JPanel centerPanel, centerLeftPanel, centerRightPanel; //center panel
-    private CardButton drawPile, discardPile; //cardButton is a class that extends JButton. Anything that shows as a card is a cardButton
+    private CardButton drawPile, discardCard; //cardButton is a class that extends JButton. Anything that shows as a card is a cardButton
     private JButton setButton, hitButton; //buttons in botPanel of player usage
-    private ArrayList<CardButton> selectedCards; //cards that currently selected by the user
-    private ArrayList<JPanel> completedSetPanels; //panels that are added into the completed phase set area (centerRightPanel)
-    private int numSetsCompleted, rows, cols; //necessary variables for phase rounds
-    private HashMap<String, String> components;// text components of the gui that can be changed
+    private final ArrayList<CardButton> selectedCards; //cards that currently selected by the user
+    private final ArrayList<JPanel> completedSetPanels; //panels that are added into the completed phase set area (centerRightPanel)
+    private final HashMap<String, String> components;// text components of the gui that can be changed
+    private String pile;
 
     //Basic setup of the frame container, panels, card piles (buttons)
     public GUI(HashMap<String, String> vars) {
         components = new HashMap<>(vars);
+        selectedCards = new ArrayList<>();
+        centerRightPanel = new JPanel();
+        completedSetPanels = new ArrayList<>();
         setupFrame(); //Set up main container frame of all panels
         setupParentPanels(); //Set up 2 parent panels to separate the physical board game and
         // side menu for score and instructions.
         refreshMenu();
         setupPlayerPanels(); //Setup up 5 panels, 3 cpu, 1 player, 1 center panel for card piles
         setupCenterPanel(); //Setup centerPanel discard and draw card piles
-        newRound(); //Setup card distribution
+        updateSetsPanel();
         frame.setVisible(true);
+    }
+
+    private String fixText(String text) {
+        return "<html>" + text.replaceAll("<","&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll("\n", "<br/>") + "</html>";
     }
 
     public void updateStatus(String status) {
         components.put("status", status);
+        refreshMenu();
+    }
+
+    public void updateScoreboard(String scoreboard) {
+        components.put("scoreboard", scoreboard);
         refreshMenu();
     }
 
@@ -77,6 +87,7 @@ public class GUI {
         menuPanel = new JPanel();
         menuPanel.setBackground(Color.white);
         menuPanel.setPreferredSize(menuSize);
+        menuPanel.setLayout(new GridLayout(2, 1));
 
         frame.add(boardPanel, BorderLayout.CENTER);
         frame.add(menuPanel, BorderLayout.EAST);
@@ -86,60 +97,38 @@ public class GUI {
     private void refreshMenu() {
         menuPanel.removeAll();
 
-        //side menu text displaying scores
-        JTextPane scoreboard = new JTextPane();
-        Font font = new Font("Dialog", Font.PLAIN, 20);
-        scoreboard.setFont(font);
+        JPanel scoreboard = new JPanel();
+        scoreboard.setLayout(new GridLayout(6, 1));
 
-        SimpleAttributeSet attributeSet = new SimpleAttributeSet();
-        scoreboard.setCharacterAttributes(attributeSet, true);
-        Document doc = scoreboard.getStyledDocument();
-        try {
-            StyleConstants.setFontSize(attributeSet, 32);
-            StyleConstants.setBold(attributeSet, true);
-            StyleConstants.setItalic(attributeSet, true);
-            StyleConstants.setUnderline(attributeSet, true);
-            StyleConstants.setFontFamily(attributeSet, "Magneto");
-            StyleConstants.setForeground(attributeSet, Color.BLUE);
-            doc.insertString(doc.getLength(), ("Phase 10" + "\n"), attributeSet);
+        JLabel label = new JLabel("Phase 10");
+        label.setFont(new Font("Magneto", Font.BOLD, 32));
+        label.setForeground(Color.BLUE);
+        label.setBackground(null);
+        scoreboard.add(label);
 
-            attributeSet = new SimpleAttributeSet();
-            StyleConstants.setFontSize(attributeSet, 20);
-            StyleConstants.setBold(attributeSet, true);
-            StyleConstants.setItalic(attributeSet, true);
-            StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
-            doc.insertString(doc.getLength(), String.format("\n%s\n\n", components.get("status")),
-                    attributeSet);
+        label = new JLabel(fixText(components.get("status")));
+        label.setFont(new Font("Dialog", Font.PLAIN, 18));
+        label.setBackground(null);
+        scoreboard.add(label);
 
-            attributeSet = new SimpleAttributeSet();
-            StyleConstants.setFontSize(attributeSet, 16);
-            StyleConstants.setBold(attributeSet, true);
-            StyleConstants.setItalic(attributeSet, true);
-            StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
-            doc.insertString(doc.getLength(), ("Scoreboard\n"), attributeSet);
+        label = new JLabel("Scoreboard");
+        label.setFont(new Font("Dialog", Font.BOLD, 20));
+        scoreboard.add(label);
 
-            attributeSet = new SimpleAttributeSet();
-            StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
-            StyleConstants.setFontSize(attributeSet, 14);
-            doc.insertString(doc.getLength(), components.get("scoreboard"), attributeSet);
+        label = new JLabel(fixText(components.get("scoreboard")));
+        label.setFont(new Font("Dialog", Font.BOLD, 14));
+        scoreboard.add(label);
 
-            attributeSet = new SimpleAttributeSet();
-            StyleConstants.setFontSize(attributeSet, 16);
-            StyleConstants.setBold(attributeSet, true);
-            StyleConstants.setItalic(attributeSet, true);
-            StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
-            doc.insertString(doc.getLength(), ("\nCompleted Phase Sets\n"), attributeSet);
+        label = new JLabel("Completed phase sets");
+        label.setFont(new Font("Dialog", Font.BOLD, 20));
+        scoreboard.add(label);
 
-            attributeSet = new SimpleAttributeSet();
-            StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
-            StyleConstants.setFontSize(attributeSet, 14);
-            doc.insertString(doc.getLength(), components.get("phases"), attributeSet);
-        } catch (BadLocationException e) {
-            System.err.println("Could not insert such text into scoreboard");
-        }
+        label = new JLabel(fixText(components.get("phases")));
+        label.setFont(new Font("Dialog", Font.BOLD, 14));
+        scoreboard.add(label);
 
         JLabel instructions = new JLabel();
-        ImageIcon icon = new ImageIcon("phase10 instructions.png");
+        ImageIcon icon = new ImageIcon("instructions.png");
         icon = new ImageIcon(icon.getImage().getScaledInstance((int) menuSize.getWidth(), (int) (menuSize.getHeight() / 3), Image.SCALE_DEFAULT));
         instructions.setIcon(icon);
 
@@ -157,7 +146,6 @@ public class GUI {
             cardButton.setPreferredSize(new Dimension((int) (cardWidth * .9), (int) (cardHeight * .9)));
             playerCardPanel.add(cardButton); // TODO add back player cards
         }
-
         playerCardPanel.revalidate();
         playerCardPanel.repaint();
     }
@@ -167,8 +155,8 @@ public class GUI {
         JPanel panel;
         ImageIcon icon;
         Dimension dimension;
-        int sideWidth = (int) (cardHeight * .3);
-        int sideHeight = (int) (cardWidth * .3);
+        int sideWidth = (int) (cardHeight * .4);
+        int sideHeight = (int) (cardWidth * .4);
         switch (side) {
             case "top":
                 int topWidth = (int) (cardWidth * .5);
@@ -193,27 +181,18 @@ public class GUI {
             default:
                 throw new IllegalArgumentException();
         }
-        panel.removeAll();
-        for (int i = 0; i < num; i++) {
-            CardButton card = new CardButton(icon);
-            card.setBorder(BorderFactory.createEmptyBorder());
-            card.setPreferredSize(dimension);
-            panel.add(card);
+        if (panel.getComponentCount() > num) {
+            for (int i = panel.getComponentCount(); i != num; i--) {
+                panel.remove(0);
+            }
         }
-        panel.revalidate();
-        panel.repaint();
-    }
-
-    public void removeCard(String side, int num) { // remove a specified number of cards
-        JPanel panel;
-        switch (side) {
-            case "top": panel = topPanel; break;
-            case "left": panel = leftPanel; break;
-            case "right": panel = rightPanel; break;
-            default: throw new IllegalArgumentException();
-        }
-        for (int i = 0; i < num; i++) {
-            panel.remove(0);
+        else if (panel.getComponentCount() < num) {
+            for (int i = panel.getComponentCount(); i != num; i++) {
+                JLabel card = new JLabel(icon);
+                card.setBorder(BorderFactory.createEmptyBorder());
+                card.setPreferredSize(dimension);
+                panel.add(card);
+            }
         }
         panel.revalidate();
         panel.repaint();
@@ -299,11 +278,9 @@ public class GUI {
 
         botPanel.add(playerButtonPanel, BorderLayout.NORTH);
         botPanel.add(playerCardPanel, BorderLayout.SOUTH);
-
-
     }
 
-    //NOTE: centerPanel contains 2 more JPanels; Left = discard and draw piles, Right = completed phase sets
+    // centerPanel contains JPanels; Left = discard and draw piles, Right = completed phase sets
     private void setupCenterPanel() {
         //Set up draw & discard pile panel (left)
         centerLeftPanel = new JPanel();
@@ -317,12 +294,6 @@ public class GUI {
         drawPile.setPreferredSize(new Dimension(cardWidth, cardHeight));
         centerLeftPanel.add(drawPile);
 
-        // TODO: actual card displayed
-        discardPile = new CardButton("DISCARD");
-        discardPile.setBorder(BorderFactory.createEmptyBorder());
-        discardPile.setPreferredSize(new Dimension(cardWidth, cardHeight));
-        centerLeftPanel.add(discardPile);
-
         //Set up completed phase sets panel (centerRightPanel)
         centerRightPanel = new JPanel();
         centerRightPanel.setBackground(bgColor);
@@ -333,48 +304,26 @@ public class GUI {
         centerPanel.add(centerRightPanel, BorderLayout.EAST);
     }
 
-    //At beginning of each new round deal new cards and new draw/discard pile
-    private void newRound() {
-        numSetsCompleted = 0;
-        selectedCards = new ArrayList<>();
-        topPanel.removeAll();
-        leftPanel.removeAll();
-        rightPanel.removeAll();
-
-        // TODO update scoreboard properly
-        centerLeftPanel.remove(discardPile); // update discard pile
-        ImageIcon icon = new ImageIcon("yellow three.png");
-        CardButton dCard = new CardButton(icon);
-        dCard.setBorder(BorderFactory.createEmptyBorder());
-        dCard.setPreferredSize(new Dimension(cardWidth, cardHeight));
-        discardPile = dCard;
-        centerLeftPanel.add(discardPile);
-
-        updateSetSettings(); // refresh set area
-    }
-
-    // Update necessary changes for each phase
-    // Max cards necessary for a set in phase (maxSelect), number of potential completed sets (rows & cols)
-    // what phase logic to call when player clicks button(s) (setButton, hitButton)
-    private void updateSetSettings() {
-        rows = 4;
-        cols = 2;
-
-        //Load completedSetPanels with empty panels to be then added to centerRightPanel
-        completedSetPanels = new ArrayList<>();
-        for (int i = 0; i < (rows * cols); i++) {
-            JPanel holder = new JPanel();
-            holder.setBackground(bgColor);
-            completedSetPanels.add(holder);
+    public void setDiscardCard(Card card) {
+        if (discardCard != null) {
+            centerLeftPanel.remove(discardCard);
         }
-        updateCenterRightPanel();
+        if (card != null) {
+            discardCard = new CardButton(card);
+            centerLeftPanel.add(discardCard);
+        }
     }
 
-    // Refresh/reset the set area to show completedSetPanels
-    private void updateCenterRightPanel() {
-        centerRightPanel.removeAll();
-        centerRightPanel.setLayout(new GridLayout(rows, cols));
+    /**
+     * Clears the sets from the GUI.
+     */
+    public void clearSets() { // TODO
+        completedSetPanels.clear();
+    }
 
+    private void updateSetsPanel() {
+        centerRightPanel.removeAll();
+        centerRightPanel.setLayout(new FlowLayout());
         for (JPanel set: completedSetPanels) {
             centerRightPanel.add(set);
         }
@@ -392,20 +341,7 @@ public class GUI {
         playerCardPanel.repaint();
     }
 
-    // Refresh/rest CPUCardPanels to show correct cards
-    private void updateCPUCardPanels() {
-        /*
-            topPanel.removeAll();
-            //for (cardButton card: p3Cards) {
-                card.setPreferredSize(new Dimension((int) (cardWidth * .5), (int) (cardHeight * .5)));
-                topPanel.add(card);
-            //}
-            topPanel.revalidate();
-            topPanel.repaint();
-         */
-    }
-
-    //When player click "Complete" (setButton), method will be called to add it into the completed set area (centerRightPanel)
+    // on click
     private void addCompletedPlayerSet() {
         int cWidth = (int) (cardWidth * .4);
         int cHeight = (int) (cardHeight * .4);
@@ -420,76 +356,75 @@ public class GUI {
             card.setPreferredSize(new Dimension(cWidth, cHeight));
             set.add(card);
         }
-        selectedCards = new ArrayList<>(); //clear selectedCards, because all selectedCards are now a completed set in set area
-        completedSetPanels.set(numSetsCompleted, set); //update completedSetPanels to include new set
-        numSetsCompleted++;
+        selectedCards.clear();
+        completedSetPanels.add(set); // TODO
 
         updatePlayerCardPanel();
-        updateCenterRightPanel();
+        updateSetsPanel();
     }
 
-    // Game starts, manages player turns and determines round
-    private void game() {
-        //playerDraw();
-    }
-
-    // 1) Player must draw a card. Allowed to draw from discard and draw pile.
-    private void playerDraw() {
-        //display on menu player is drawing.
+    /**
+     * Returns the pile that the player draws from.
+     * Interactions go back and forth. Variables allow for waiting.
+     */
+    public String playerDraw() {
         updateStatus("Player 1 is drawing.");
-        // TODO update move properly
-
-        //enable player to draw from draw pile
-        drawPile.setBorder(BorderFactory.createLineBorder(Color.CYAN, 7)); //highlight pile
+        pile = "";
+        drawPile.setBorder(BorderFactory.createLineBorder(Color.CYAN, 7));
         drawPile.addActionListener(e -> {
-            System.out.println("Player has drawn a card!\n");
-            // TODO add player cards
             CardButton card = new CardButton("drawn card"); //should be set to top card of draw pile
             card.setBorder(BorderFactory.createEmptyBorder());
             card.setPreferredSize(new Dimension((int) (cardWidth * .9), (int) (cardHeight * .9)));
             updatePlayerCardPanel();
 
-            //Disable drawPile button
-            for (ActionListener al: drawPile.getActionListeners()) {
-                drawPile.removeActionListener(al);
-            }
-            //Disable discardPile button
-            for (ActionListener al: discardPile.getActionListeners()) {
-                discardPile.removeActionListener(al);
-            }
-            drawPile.setBorder(BorderFactory.createEmptyBorder()); //remove highlight from drawPile
-            discardPile.setBorder(BorderFactory.createEmptyBorder()); //remove highlight from discardPile
-            playerTurn(); //draw step over
+            disablePiles();
+            setSelectedPile("draw");
         });
-        //enable player to draw from discard pile
-        discardPile.setBorder(BorderFactory.createLineBorder(Color.CYAN, 7)); //highlight pile
-        discardPile.addActionListener(e -> {
-            System.out.println("Player has drawn a card!\n");
+        while (getSelectedPile().equals("")) {
+            try {Thread.sleep(1);}
+            catch (InterruptedException ignored) {}
+        }
+        return pile;
+    }
 
+    /**
+     * Discard piles are only enabled if skips aren't at the top.
+     */
+    public void enableDiscardPile() {
+        discardCard.setBorder(BorderFactory.createLineBorder(Color.CYAN, 7));
+        discardCard.addActionListener(e -> {
             CardButton card = new CardButton("drawn card"); //really set it to whatever card is on the discard pile at the moment
             card.setBorder(BorderFactory.createEmptyBorder());
             card.setPreferredSize(new Dimension((int) (cardWidth * .9), (int) (cardHeight * .9)));
-            // TODO add player cards
             updatePlayerCardPanel();
 
-            //Disable drawPile button
-            for (ActionListener al: drawPile.getActionListeners()) {
-                drawPile.removeActionListener(al);
-            }
-            //Disable discardPile button
-            for (ActionListener al: discardPile.getActionListeners()) {
-                discardPile.removeActionListener(al);
-            }
-            drawPile.setBorder(BorderFactory.createEmptyBorder()); //remove highlight from drawPile
-            discardPile.setBorder(BorderFactory.createEmptyBorder()); //remove highlight from discardPile
-            playerTurn(); //draw step over
+            disablePiles();
+            setSelectedPile("discard");
         });
-        drawPile.setBorder(BorderFactory.createEmptyBorder()); //remove highlight from drawPile
-        playerTurn(); //draw step over
     }
 
-    // 2) Player decides to either discard or add set/hit
-    private void playerTurn() {
+    public void disablePiles() {
+        // disable and remove highlights
+        for (ActionListener al: drawPile.getActionListeners()) {
+            drawPile.removeActionListener(al);
+        }
+        for (ActionListener al: discardCard.getActionListeners()) {
+            discardCard.removeActionListener(al);
+        }
+        drawPile.setBorder(BorderFactory.createEmptyBorder());
+        discardCard.setBorder(BorderFactory.createEmptyBorder());
+    }
+
+    private void setSelectedPile(String p) {
+        pile = p;
+    }
+
+    private String getSelectedPile() {
+        return pile;
+    }
+
+    // new turn after card is drawn
+    public void playerTurn() {
         toggleCardSelection(); //make cards selectable
         //Enables player buttons as options for player
         /*
@@ -503,11 +438,9 @@ public class GUI {
     }
 
     // If player still needs to complete sets --> allow player to attempt to create phase set
-    private void playerCreateASet() {
-        System.out.println("Player can create a set");
+    private void toggleSetButton() {
         setButton.addActionListener(e -> {
             // TODO currently selected is a list and use turn validator
-            System.out.println("\nPlayer has completed a phase set!");
             addCompletedPlayerSet();
             disablePlayerFunctions();
             playerTurn();
@@ -517,8 +450,8 @@ public class GUI {
     //If player has one card selected & presses discard pile --> discard that card
     private void playerDiscard() {
         System.out.println("Player can discard");
-        discardPile.setBorder(BorderFactory.createLineBorder(Color.yellow, 3));
-        discardPile.addActionListener(e -> {
+        discardCard.setBorder(BorderFactory.createLineBorder(Color.yellow, 3));
+        discardCard.addActionListener(e -> {
             if (selectedCards.size() == 1) {
                 System.out.println("\nDiscarded");
 
@@ -528,18 +461,19 @@ public class GUI {
                     card.setBorder(BorderFactory.createEmptyBorder());
                     card.unselect();
                     card.setPreferredSize(new Dimension(cardWidth, cardHeight));
-                    ImageIcon icon = new ImageIcon("blue eight.png");
 
-                    centerLeftPanel.remove(discardPile);
-                    discardPile = card;
-                    centerLeftPanel.add(discardPile);
+                    centerLeftPanel.remove(discardCard);
+                    discardCard = card;
+                    centerLeftPanel.add(discardCard);
                     centerLeftPanel.revalidate();
                 }
-                selectedCards = new ArrayList<>(); //clear selectedCards, because selected card is now discard pile
+                selectedCards.clear();
                 playerCardPanel.repaint();
 
                 disablePlayerFunctions();
-                System.out.println("Player turn over.\n");
+            }
+            else {
+                // TODO warn
             }
         });
     }
@@ -556,7 +490,7 @@ public class GUI {
 
     //Helper Method to make player cards selectable
     private void toggleCardSelection() {
-        /*for (cardButton card: playerCards) {
+        /*TODO for (cardButton card: playerCards) {
             // Selecting a card will highlight it & add it to selectedCards (ArrayList)
             card.addActionListener(new ActionListener() {
                 @Override
@@ -579,7 +513,6 @@ public class GUI {
                 }
             });
         }
-
          */
     }
 
@@ -602,9 +535,9 @@ public class GUI {
                             card.setPreferredSize(new Dimension(cWidth, cHeight));
                             panel.add(card);
                         }
-                        selectedCards = new ArrayList<>(); //clear selectedCards, because all selectedCards are now a completed set in set area
+                        selectedCards.clear();
 
-                        updateCenterRightPanel();
+                        updateSetsPanel();
                         disablePlayerFunctions();
                         playerTurn();
                     }
@@ -629,170 +562,46 @@ public class GUI {
         }
     }
 
-    // Disable cards from being able to be selected
     private void disablePlayerFunctions() {
-        System.out.println("\nPLAYER FUNCTIONS ARE DISABLED\n");
-
-        //playerCards are unselectable
-        /*
-        for (cardButton card: playerCards) {
+        for (Component c: playerCardPanel.getComponents()) {
+            CardButton card = (CardButton) c;
             for (ActionListener al: card.getActionListeners()) {
                 card.removeActionListener(al);
             }
         }
-
-         */
-        //disable setButton
-        for (ActionListener al: setButton.getActionListeners()) {
+        for (ActionListener al: setButton.getActionListeners()) { // set button
             setButton.removeActionListener(al);
         }
-        //disable discardPile
-        for (ActionListener al: discardPile.getActionListeners()) {
-            discardPile.removeActionListener(al);
+        for (ActionListener al: discardCard.getActionListeners()) { // discard pile
+            discardCard.removeActionListener(al);
         }
-        //disable hitButton
-        for (ActionListener al: hitButton.getActionListeners()) {
+        for (ActionListener al: hitButton.getActionListeners()) { // hit button
             hitButton.removeActionListener(al);
         }
-        //panels unselectable for hitting
-        for (JPanel panel: completedSetPanels) {
+        for (JPanel panel: completedSetPanels) { // no hitting
             for (MouseListener ml: panel.getMouseListeners()) {
                 panel.removeMouseListener(ml);
             }
         }
     }
 
-    // CPU method to draw from either the draw/discard pile
-    private void CPUDraw() {
-        System.out.println("A CPU has drawn a card!\n");
-
-        int sideWidth = (int) (cardHeight * .3);
-        int sideHeight = (int) (cardWidth * .3);
-        ImageIcon rightCard = new ImageIcon(cardBack270.getImage().getScaledInstance(sideWidth, sideHeight, Image.SCALE_DEFAULT));
-        ImageIcon leftCard = new ImageIcon(cardBack90.getImage().getScaledInstance(sideWidth, sideHeight, Image.SCALE_DEFAULT));
-        int topWidth = (int) (cardWidth * .5);
-        int topHeight = (int) (cardHeight * .5);
-        ImageIcon topCard = new ImageIcon(cardBack180.getImage().getScaledInstance(topWidth, topHeight, Image.SCALE_DEFAULT));
-
-        CardButton card = new CardButton("CPU"); // TODO
-        card.setBorder(BorderFactory.createEmptyBorder());
-        /*
-        if (turn == 2) {
-            card.setIcon(rightCard);
-            card.setPreferredSize(new Dimension(sideWidth, sideHeight));
-            updateCPUCardPanels();
-        }
-        if (turn == 3) {
-            card.setIcon(topCard);
-            card.setPreferredSize(new Dimension(topWidth, topHeight));
-            updateCPUCardPanels();
-        }
-        if (turn == 4) {
-            card.setIcon(leftCard);
-            card.setPreferredSize(new Dimension(sideWidth, sideHeight));
-            updateCPUCardPanels();
-        }
-
-         */
-        CPUTurn(); //draw step over
-    }
-
-    private void CPUTurn() {
-        // !MICHAELS LOGIC! TODO
-        System.out.println("Player passing...\n");
-        CPUDiscard();
-    }
-
-    private void CPUDiscard() {
-        System.out.println("CPU Discarding");
-        CardButton card;
-
-        /*
-        if (turn == 2) {
-            card = p2Cards.get(0); //MICHAELS LOGIC TODO
-            p2Cards.remove(card);
-            updateCPUCardPanels();
-            ImageIcon icon = new ImageIcon("blue eight.png");
-            card.setIcon(icon);
-            card.setPreferredSize(new Dimension(cardWidth, cardHeight));
-            centerLeftPanel.remove(discardPile);
-            discardPile = card;
-            centerLeftPanel.add(discardPile);
-            centerLeftPanel.revalidate();
-            rightPanel.repaint();
-        } else if (turn == 3) {
-            card = p3Cards.get(0); //MICHAELS LOGIC
-            p3Cards.remove(card);
-            updateCPUCardPanels();
-            ImageIcon icon = new ImageIcon("blue eight.png");
-            card.setIcon(icon);
-            card.setPreferredSize(new Dimension(cardWidth, cardHeight));
-            centerLeftPanel.remove(discardPile);
-            discardPile = card;
-            centerLeftPanel.add(discardPile);
-            centerLeftPanel.revalidate();
-            topPanel.repaint();
-        } else if (turn == 4) {
-            card = p4Cards.get(0); //MICHAELS LOGIC
-            p4Cards.remove(card);
-            updateCPUCardPanels();
-            ImageIcon icon = new ImageIcon("blue eight.png");
-            card.setIcon(icon);
-            card.setPreferredSize(new Dimension(cardWidth, cardHeight));
-            centerLeftPanel.remove(discardPile);
-            discardPile = card;
-            centerLeftPanel.add(discardPile);
-            centerLeftPanel.revalidate();
-            leftPanel.repaint();
-        }
-
-         */
-    }
-
-    private void addCompletedCPUSet() {
-        int cWidth = (int) (cardWidth * .4);
-        int cHeight = (int) (cardHeight * .4);
+    /**
+     * Adds a set of cards to the center, creating a middle pile.
+     * @param cards the list of cards
+     */
+    public void addSet(LinkedList<Card> cards) {
         JPanel set = new JPanel();
         set.setBackground(bgColor);
         set.setBorder(BorderFactory.createLineBorder(Color.GRAY, 2));
-
-        /* TODO
-        if (turn == 2) {
-            //michaels logic
-            for (CardButton card: selectedCards) {
-                //Deselect and resize cards to place in JPanel (set) to be then added into centerRightPanel
-                card.setBorder(BorderFactory.createEmptyBorder());
-                card.unselect();
-                card.setPreferredSize(new Dimension(cWidth, cHeight));
-                set.add(card);
-            }
+        for (Card card: cards) {
+            CardButton cardButton = new CardButton(card);
+            JLabel label = new JLabel(cardButton.getIcon());
+            label.setBorder(BorderFactory.createEmptyBorder());
+            label.setPreferredSize(new Dimension((int) (cardWidth * 0.4), (int) (cardHeight *
+                    0.4)));
+            set.add(label);
         }
-        if (turn == 3) {
-            //michaels logic
-            for (CardButton card: selectedCards) {
-                //Deselect and resize cards to place in JPanel (set) to be then added into centerRightPanel
-                card.setBorder(BorderFactory.createEmptyBorder());
-                card.unselect();
-                card.setPreferredSize(new Dimension(cWidth, cHeight));
-                set.add(card);
-            }
-        }
-        if (turn == 4) {
-            //michaels logic
-            for (CardButton card: selectedCards) {
-                //Deselect and resize cards to place in JPanel (set) to be then added into centerRightPanel
-                card.setBorder(BorderFactory.createEmptyBorder());
-                card.unselect();
-                card.setPreferredSize(new Dimension(cWidth, cHeight));
-                set.add(card);
-            }
-        }
-
-         */
-        updateCPUCardPanels();
-        completedSetPanels.set(numSetsCompleted, set); //update completedSetPanels to include new set
-        numSetsCompleted++;
-        updateCenterRightPanel();
+        completedSetPanels.add(set);
+        updateSetsPanel();
     }
 }
-

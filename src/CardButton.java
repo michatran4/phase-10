@@ -10,6 +10,7 @@ public class CardButton extends JButton {
         card = c;
         setIcon(getIconFromName(c.toString()));
     }
+
     public CardButton(String s)
     {
         super(s);
@@ -80,7 +81,7 @@ public class CardButton extends JButton {
                 default:
                     number = "twelve";
             }
-            icon = new ImageIcon(color + " " + number);
+            icon = new ImageIcon(color + " " + number + ".png");
         } else {
             if (value.equals("WILD")) {
                 icon = new ImageIcon("wild.png");
@@ -89,5 +90,9 @@ public class CardButton extends JButton {
             }
         }
         return icon;
+    }
+
+    public Card getCard() {
+        return card;
     }
 }

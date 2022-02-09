@@ -106,7 +106,10 @@ public class PhaseTen {
 
     private void updateStatus(String status) { // TODO gui needs better wrapping
         gui.updateStatus(status);
-        sleep();
+        try {
+            Thread.sleep(1000);
+        }
+        catch (InterruptedException ignored) {}
     }
 
     private void startGame() {
@@ -159,7 +162,7 @@ public class PhaseTen {
                 if (drawPile.isEmpty()) { // checking if piles are bad
                     drawPile.addAll(discardPile.getPile());
                     discardPile.clear();
-                    gui.setDiscardCard(null);
+                    gui.setDiscardCard("(discard)");
                 }
                 if (skipped.contains(player)) { // skip the player
                     updateStatus(player + " was skipped.");
@@ -275,27 +278,39 @@ public class PhaseTen {
                         updateStatus(player + " drew from\nthe draw pile.");
                     }
                     else if (pile.equals("discard")) {
-                        deckManager.get("Player 1").addCard(drawPile.pop());
+                        Card discard = discardPile.pop();
+                        deckManager.get("Player 1").addCard(discard);
                         gui.setCards(deckManager.get("Player 1").getCreatedDeck());
+                        if (discardPile.isEmpty()) {
+                            gui.setDiscardCard("(discard)");
+                        }
+                        else {
+                            gui.setDiscardCard(discardPile.peek());
+                        }
                         updateStatus(player + " drew from\nthe discard pile.");
                     }
-                    // TODO playerTurn(); // after drawing
-
-                    // TODO integrate with GUI, check correct phase
-                    //  unable to draw skip cards from the discard pile
-                    //  validate hits too
-                    //  player chooses who to skip
+                    gui.playerTurn(); // after drawing, get the next turn
+                    System.out.println("waiting");
+                    while (!gui.getNextMove().equals("discard")) {
+                        if (!gui.getNextMove().equals("")) {
+                            String nextMove = gui.getNextMove();
+                            if (nextMove.equals("set")) {
+                                // TODO clear decks manually?
+                            }
+                            else if (nextMove.equals("hit")) {
+                                // TODO
+                            }
+                            gui.setNextMove(""); // TODO?
+                        }
+                        try {Thread.sleep(10);} catch (InterruptedException ignored) {}
+                    }
+                    System.out.println("Discarded");
+                    // validate hits too
+                    // player chooses who to skip
                 }
             }
         }
         hitting.clear();
-    }
-
-    private void sleep() {
-        try {
-            Thread.sleep(1000);
-        }
-        catch (InterruptedException ignored) {}
     }
 
     private void updatePlayerDeckGUI() {

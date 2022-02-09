@@ -1,3 +1,4 @@
 - Integrate the GUI, with players having options like CPUs.
 - Make a more efficient data structure for cards
 - Format to 100 character wrap
+- Add gameplay instructions for the GUI.

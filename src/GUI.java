@@ -28,14 +28,17 @@ public class GUI {
     private JPanel centerPanel, centerLeftPanel, centerRightPanel; //center panel
     private CardButton drawPile, discardCard; //cardButton is a class that extends JButton. Anything that shows as a card is a cardButton
     private JButton setButton, hitButton; //buttons in botPanel of player usage
+    private ArrayList<CardButton> playerCards;
     private final ArrayList<CardButton> selectedCards; //cards that currently selected by the user
     private final ArrayList<JPanel> completedSetPanels; //panels that are added into the completed phase set area (centerRightPanel)
     private final HashMap<String, String> components;// text components of the gui that can be changed
     private String pile;
+    private String move;
 
     //Basic setup of the frame container, panels, card piles (buttons)
     public GUI(HashMap<String, String> vars) {
         components = new HashMap<>(vars);
+        playerCards = new ArrayList<>();
         selectedCards = new ArrayList<>();
         centerRightPanel = new JPanel();
         completedSetPanels = new ArrayList<>();
@@ -139,12 +142,28 @@ public class GUI {
     }
 
     public void setCards(LinkedList<Card> cards) {
+        playerCards.clear();
         playerCardPanel.removeAll();
         for (Card card: cards) {
             CardButton cardButton = new CardButton(card);
             cardButton.setBorder(BorderFactory.createEmptyBorder());
             cardButton.setPreferredSize(new Dimension((int) (cardWidth * .9), (int) (cardHeight * .9)));
-            playerCardPanel.add(cardButton); // TODO add back player cards
+            playerCardPanel.add(cardButton);
+            playerCards.add(cardButton);
+            /*
+            cardButton.addActionListener(e -> {
+                if (!(cardButton.isSelected())) {
+                    cardButton.setBorder(BorderFactory.createLineBorder(Color.RED, 5));
+                    cardButton.select();
+                    selectedCards.add(cardButton);
+                }
+                else {
+                    cardButton.setBorder(BorderFactory.createEmptyBorder());
+                    cardButton.unselect();
+                    selectedCards.remove(cardButton);
+                }
+            });
+             */
         }
         playerCardPanel.revalidate();
         playerCardPanel.repaint();
@@ -349,6 +368,15 @@ public class GUI {
             centerLeftPanel.add(discardCard);
         }
     }
+    public void setDiscardCard(String card) {
+        if (discardCard != null) {
+            centerLeftPanel.remove(discardCard);
+        }
+        if (card != null) {
+            discardCard = new CardButton(card);
+            centerLeftPanel.add(discardCard);
+        }
+    }
 
     /**
      * Clears the sets from the GUI.
@@ -364,17 +392,6 @@ public class GUI {
             centerRightPanel.add(set);
         }
         centerRightPanel.revalidate();
-    }
-
-    // Refresh/reset playerCardPanel to show correct cards
-    private void updatePlayerCardPanel() {
-        playerCardPanel.removeAll();
-        /* TODO
-            card.setPreferredSize(new Dimension((int) (cardWidth * .9), (int) (cardHeight * .9)));
-            playerCardPanel.add(card);
-         */
-        playerCardPanel.revalidate();
-        playerCardPanel.repaint();
     }
 
     // on click
@@ -394,8 +411,6 @@ public class GUI {
         }
         selectedCards.clear();
         completedSetPanels.add(set); // TODO
-
-        updatePlayerCardPanel();
         updateSetsPanel();
     }
 
@@ -408,16 +423,11 @@ public class GUI {
         pile = "";
         drawPile.setBorder(BorderFactory.createLineBorder(Color.CYAN, 7));
         drawPile.addActionListener(e -> {
-            CardButton card = new CardButton("drawn card"); //should be set to top card of draw pile
-            card.setBorder(BorderFactory.createEmptyBorder());
-            card.setPreferredSize(new Dimension((int) (cardWidth * .9), (int) (cardHeight * .9)));
-            updatePlayerCardPanel();
-
             disablePiles();
             setSelectedPile("draw");
         });
         while (getSelectedPile().equals("")) {
-            try {Thread.sleep(1);}
+            try {Thread.sleep(10);}
             catch (InterruptedException ignored) {}
         }
         return pile;
@@ -429,11 +439,6 @@ public class GUI {
     public void enableDiscardPile() {
         discardCard.setBorder(BorderFactory.createLineBorder(Color.CYAN, 7));
         discardCard.addActionListener(e -> {
-            CardButton card = new CardButton("drawn card"); //really set it to whatever card is on the discard pile at the moment
-            card.setBorder(BorderFactory.createEmptyBorder());
-            card.setPreferredSize(new Dimension((int) (cardWidth * .9), (int) (cardHeight * .9)));
-            updatePlayerCardPanel();
-
             disablePiles();
             setSelectedPile("discard");
         });
@@ -459,41 +464,41 @@ public class GUI {
         return pile;
     }
 
+    public void setNextMove(String m) {
+        move = m;
+    }
+
+    public String getNextMove() {
+        return move;
+    }
+
     // new turn after card is drawn
     public void playerTurn() {
+        move = "";
         toggleCardSelection(); //make cards selectable
-        //Enables player buttons as options for player
-        /*
-        if (numSetsCompleted < numSetsNeeded)
-            playerCreateASet();
-        else if (playerCards.size() > 1) //if player only has one card left must discard.
-            playerHit();
-        playerDiscard();
-
-         */
+        toggleSetButton();
+        togglePlayerDiscardButton();
+        // togglePlayerHitButton(); TODO toggle if available
     }
 
     // If player still needs to complete sets --> allow player to attempt to create phase set
     private void toggleSetButton() {
         setButton.addActionListener(e -> {
+            setNextMove("set");
             // TODO currently selected is a list and use turn validator
-            addCompletedPlayerSet();
-            disablePlayerFunctions();
-            playerTurn();
+                addCompletedPlayerSet();
+                disablePlayerFunctions();
         });
     }
 
     //If player has one card selected & presses discard pile --> discard that card
-    private void playerDiscard() {
+    private void togglePlayerDiscardButton() {
         System.out.println("Player can discard");
         discardCard.setBorder(BorderFactory.createLineBorder(Color.yellow, 3));
         discardCard.addActionListener(e -> {
             if (selectedCards.size() == 1) {
-                System.out.println("\nDiscarded");
-
+                setNextMove("discard");
                 for (CardButton card: selectedCards) {
-                    updatePlayerCardPanel();
-
                     card.setBorder(BorderFactory.createEmptyBorder());
                     card.unselect();
                     card.setPreferredSize(new Dimension(cardWidth, cardHeight));
@@ -504,52 +509,46 @@ public class GUI {
                     centerLeftPanel.revalidate();
                 }
                 selectedCards.clear();
-                playerCardPanel.repaint();
 
                 disablePlayerFunctions();
             }
             else {
-                // TODO warn
+                JOptionPane.showMessageDialog(null,
+                        "You can only discard with one card selected.");
             }
         });
     }
 
-    private void playerHit() {
-        System.out.println("\nPlayer can hit");
+    public void togglePlayerHitButton() {
         hitButton.addActionListener(e -> {
             if (selectedCards.size() == 1) {
-                System.out.println("\nHitting card");
+                setNextMove("hit");
                 toggleSetSelection();
+            }
+            else {
+                JOptionPane.showMessageDialog(null,
+                        "You can only hit with one card selected.");
             }
         });
     }
 
     //Helper Method to make player cards selectable
     private void toggleCardSelection() {
-        /*TODO for (cardButton card: playerCards) {
+        for (CardButton card: playerCards) {
             // Selecting a card will highlight it & add it to selectedCards (ArrayList)
-            card.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (!(card.isSelected())) {
-                        System.out.println("a card has been selected");
-                        card.setBorder(BorderFactory.createLineBorder(selectionColors[colorIndex], 5));
-                        card.select();
-                        numSelected++;
-                        colorIndex++;
-                        if (colorIndex == selectionColors.length)
-                            colorIndex = 0;
-                        selectedCards.add(card);
-                    } else if (card.isSelected()) {
-                        card.setBorder(BorderFactory.createEmptyBorder());
-                        card.unselect();
-                        numSelected--;
-                        selectedCards.remove(card);
-                    }
+            card.addActionListener(e -> {
+                if (!(card.isSelected())) {
+                    card.setBorder(BorderFactory.createLineBorder(Color.RED, 5));
+                    card.select();
+                    selectedCards.add(card);
+                }
+                else {
+                    card.setBorder(BorderFactory.createEmptyBorder());
+                    card.unselect();
+                    selectedCards.remove(card);
                 }
             });
         }
-         */
     }
 
     private void toggleSetSelection() {
@@ -563,8 +562,6 @@ public class GUI {
                         int cHeight = (int) (cardHeight * .4);
 
                         for (CardButton card: selectedCards) {
-                            updatePlayerCardPanel();
-
                             //Deselect and resize cards to place in JPanel (set) to be then added into centerRightPanel
                             card.setBorder(BorderFactory.createEmptyBorder());
                             card.unselect();
@@ -575,24 +572,19 @@ public class GUI {
 
                         updateSetsPanel();
                         disablePlayerFunctions();
-                        playerTurn();
                     }
 
                     @Override
-                    public void mousePressed(MouseEvent e) {
-                    }
+                    public void mousePressed(MouseEvent e) {}
 
                     @Override
-                    public void mouseReleased(MouseEvent e) {
-                    }
+                    public void mouseReleased(MouseEvent e) {}
 
                     @Override
-                    public void mouseEntered(MouseEvent e) {
-                    }
+                    public void mouseEntered(MouseEvent e) {}
 
                     @Override
-                    public void mouseExited(MouseEvent e) {
-                    }
+                    public void mouseExited(MouseEvent e) {}
                 });
             }
         }

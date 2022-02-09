@@ -205,6 +205,7 @@ public class GUI {
         int sidePanelsWidth = (int) (boardSize.getHeight() / 6);
         int sidePanelsHeight = (int) (5 * (boardSize.getWidth() / 6));
 
+        // BOTTOM PANEL
         //NOTE: botPanel consists of 2 panels, top = player buttons for creating sets, bot = cards
         botPanel = new JPanel(); //Contains Player 1, aka person playing
         botPanel.setBackground(bgColor);
@@ -213,18 +214,21 @@ public class GUI {
         botPanel.setLayout(new BorderLayout());
         setupBotPanel(top_botPanelWidth, (top_botPanelHeight + 40));
 
+        // TOP PANEL
         topPanel = new JPanel(); //Contains Player 3 cards, CPU
         topPanel.setBackground(bgColor);
         topPanel.setPreferredSize(new Dimension(top_botPanelWidth, (top_botPanelHeight - 40)));
         topPanel.setBorder(BorderFactory.createEmptyBorder(40, 350, 0, 350));
         topPanel.setLayout(new GridLayout(1, 11, 20, 0));
 
+        // RIGHT PANEL
         rightPanel = new JPanel(); //Contains Player 2 cards, CPU
         rightPanel.setBackground(bgColor);
         rightPanel.setPreferredSize(new Dimension(sidePanelsWidth, sidePanelsHeight));
         rightPanel.setBorder(BorderFactory.createEmptyBorder(0, 60, 30, 50));
         rightPanel.setLayout(new GridLayout(11, 1, 0, 10));
 
+        // LEFT PANEL
         leftPanel = new JPanel(); //Contains Player 4 cards, CPU
         leftPanel.setBackground(bgColor);
         leftPanel.setPreferredSize(new Dimension(sidePanelsWidth, sidePanelsHeight));
@@ -233,15 +237,47 @@ public class GUI {
 
         //NOTE: 2 Panels, left = centerLeftPanel, right = centerRightPanel.
         //Contains the draw and discard piles (centerLeft) AND completed phase sets (centerRight)
+        JPanel parentCenterPanel = new JPanel();
+        parentCenterPanel.setLayout(new BorderLayout());
+
+        JLabel p1Title = new JLabel("PLAYER 1", SwingConstants.CENTER);
+        p1Title.setFont(new Font("Dialog", 2, 12));
+        p1Title.setOpaque(true);
+        p1Title.setBackground(bgColor);
+        p1Title.setForeground(Color.WHITE);
+        parentCenterPanel.add(p1Title, BorderLayout.SOUTH);
+
+        JLabel p2Title = new JLabel("CPU 3", SwingConstants.CENTER);
+        p2Title.setFont(new Font("Dialog", 2, 12));
+        p2Title.setOpaque(true);
+        p2Title.setBackground(bgColor);
+        p2Title.setForeground(Color.WHITE);
+        parentCenterPanel.add(p2Title, BorderLayout.EAST);
+
+        JLabel p3Title = new JLabel("CPU 2", SwingConstants.CENTER);
+        p3Title.setFont(new Font("Dialog", 2, 12));
+        p3Title.setOpaque(true);
+        p3Title.setBackground(bgColor);
+        p3Title.setForeground(Color.WHITE);
+        parentCenterPanel.add(p3Title, BorderLayout.NORTH);
+
+        JLabel p4Title = new JLabel("CPU 1", SwingConstants.CENTER);
+        p4Title.setFont(new Font("Dialog", 2, 12));
+        p4Title.setOpaque(true);
+        p4Title.setBackground(bgColor);
+        p4Title.setForeground(Color.WHITE);
+        parentCenterPanel.add(p4Title, BorderLayout.WEST);
+
         centerPanel = new JPanel();
         centerPanel.setLayout(new BorderLayout());
         centerPanel.setBackground(bgColor);
+        parentCenterPanel.add(centerPanel, BorderLayout.CENTER);
 
         boardPanel.add(botPanel, BorderLayout.SOUTH);
         boardPanel.add(rightPanel, BorderLayout.EAST);
         boardPanel.add(topPanel, BorderLayout.NORTH);
         boardPanel.add(leftPanel, BorderLayout.WEST);
-        boardPanel.add(centerPanel, BorderLayout.CENTER);
+        boardPanel.add(parentCenterPanel, BorderLayout.CENTER);
     }
 
     //bottom panel, aka player panel, consists of 2 sub panels: playerButtonPanel = top, playerCardPanel = bot

@@ -262,7 +262,7 @@ public class CPUDeck extends PlayerDeck { // TODO decide pile to draw from
                 if (phase == null || phase.getRules().getLast() instanceof NumberSet) {
                     // null phase indicates hitting
                     // discard the lowest counts for number sets; they're unlikely to build a set.
-                    /*
+                    /* TODO better AI so it doesn't get stuck on phase 7
                     if (histogram.containsValue(1)) { // one of a kind
                         for (Card card: deck.keySet()) {
                             if (deck.get(card) == 1) {

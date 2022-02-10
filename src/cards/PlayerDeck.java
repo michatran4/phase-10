@@ -191,6 +191,16 @@ public class PlayerDeck {
         return deck;
     }
 
+    public LinkedList<Card> getCreatedDeck() {
+        LinkedList<Card> cards = new LinkedList<>();
+        for (Card c: deck.keySet()) {
+            for (int i = 0; i < deck.get(c); i++) {
+                cards.add(c);
+            }
+        }
+        return cards;
+    }
+
     /**
      * @return total cards in the deck
      */

@@ -95,6 +95,16 @@ public class PlayerManager {
         return output.toString();
     }
 
+    public String getPhases() {
+        StringBuilder output = new StringBuilder();
+        for (String player: scoreboard.keySet()) {
+            output.append(player)
+                    .append(" - ")
+                    .append(phaseMap.get(player)).append("\n");
+        }
+        return output.toString();
+    }
+
     /**
      * Advances a player to the next phase.
      *
@@ -115,6 +125,10 @@ public class PlayerManager {
      */
     public String[] getPlayers() {
         return playerList.toArray(new String[0]);
+    }
+
+    public boolean hasPlayer(String player) {
+        return playerList.contains(player);
     }
 
     public String toString() {

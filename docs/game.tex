@@ -51,8 +51,7 @@ A set is cards of the same number. A run is a sequential set of numbers.
 One must complete a phase to advance. If a phase has multiple combinations of cards, they
 must all be played.
 
-\section{Gameplay}
-This program allows for one human player and three CPU players.
+\section{Gameplay Rules}
 The player to the dealer's left starts. Turns are in a clockwise direction.
 
 Players start off their turn with choosing a card either from the discard or draw pile.
@@ -80,5 +79,25 @@ must match the piles. Cards must fit in a number run properly for it to be a val
 
 \subsection{Winning}
 The winner is the player with the lowest score and has completed ten phases.
+
+\section{GUI Gameplay}
+This program allows for one human player and three CPU players.
+
+\subsection{New turn}
+A new turn begins by choosing to draw from either the draw or discard pile.
+You cannot draw a skip from the discard pile.
+
+\subsection{Playing phases}
+To lay down cards for a phase, you must click the cards in order.
+
+\subsection{Hitting cards}
+To hit cards, click the cards you want to hit and then click "Hit." The game will automatically find
+the piles to hit.
+
+You must be able to have one card remaining to discard.
+This means you can only hit up to the number of cards you have, minus one.
+
+\subsection{Discarding}
+To discard a card and end the turn, click the card to discard and then the discard pile.
 
 \end{document}

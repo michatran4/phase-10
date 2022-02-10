@@ -29,12 +29,12 @@ public class CardPile {
         Collections.shuffle(pile);
     }
 
-    public String peek() {
+    public Card peek() {
         if (!drawDeck) {
             if (pile.isEmpty()) {
                 throw new IllegalStateException();
             }
-            return pile.peek().toString();
+            return pile.peek();
         }
         throw new IllegalCallerException("Only the discard pile should be peeked at.");
     }

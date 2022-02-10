@@ -1,3 +1,4 @@
 - Make a more efficient data structure for cards
 - Format to 100 character wrap
 - Better CPU AI at different phases.
+- Dealing cards out should be drawn out card by card.

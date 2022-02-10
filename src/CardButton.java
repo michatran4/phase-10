@@ -1,6 +1,7 @@
 import cards.Card;
 
 import javax.swing.*;
+import java.util.Objects;
 
 public class CardButton extends JButton {
     private boolean selected;
@@ -39,7 +40,7 @@ public class CardButton extends JButton {
     }
 
     private ImageIcon getIconFromName(String value) {
-        ImageIcon icon;
+        String path;
         if (value.contains(" ")) {
             String[] name = value.split(" ");
             String color = name[0].toLowerCase();
@@ -81,15 +82,15 @@ public class CardButton extends JButton {
                 default:
                     number = "twelve";
             }
-            icon = new ImageIcon(color + " " + number + ".png");
+            path = color + " " + number + ".png";
         } else {
             if (value.equals("WILD")) {
-                icon = new ImageIcon("wild.png");
+                path = "wild.png";
             } else {
-                icon = new ImageIcon("skip.png");
+                path = "skip.png";
             }
         }
-        return icon;
+        return new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource(path)));
     }
 
     public Card getCard() {

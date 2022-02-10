@@ -12,16 +12,23 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Objects;
 
 public class GUI {
     private final Color bgColor = new Color(2, 48, 32); //Dark green background for board
 
     private final int cardWidth = 120; //Default card width for sizing
     private final int cardHeight = 160; //Default card height for sizing
-    private final ImageIcon cardBack0 = new ImageIcon("back0.png"); //Card Back Default
-    private final ImageIcon cardBack90 = new ImageIcon("back90.png"); //Card Back rotated 90
-    private final ImageIcon cardBack180 = new ImageIcon("back180.png"); //Card Back rotated 180
-    private final ImageIcon cardBack270 = new ImageIcon("back270.png"); //Card Back rotated 270
+    // card backs with different rotations
+    private final ImageIcon cardBack0 = new ImageIcon(Objects.requireNonNull(getClass()
+            .getClassLoader().getResource("back0.png")));
+    private final ImageIcon cardBack90 = new ImageIcon(Objects.requireNonNull(getClass()
+            .getClassLoader().getResource("back90.png")));
+    private final ImageIcon cardBack180 = new ImageIcon(Objects.requireNonNull(getClass()
+            .getClassLoader().getResource("back180.png")));
+    private final ImageIcon cardBack270 = new ImageIcon(Objects.requireNonNull(getClass()
+            .getClassLoader().getResource("back270.png")));
+
     private final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize(); //Dimensions of user's screen
     private final Dimension boardSize = new Dimension((int) ((7) * (screenSize.getWidth() / 8)), (int) screenSize.getHeight()); // Adjusted size of board
     private final Dimension menuSize = new Dimension((int) (screenSize.getWidth() / 8), screenSize.height); // Adjusted size of menu
@@ -142,8 +149,10 @@ public class GUI {
         scoreboard.add(label);
 
         JLabel instructions = new JLabel();
-        ImageIcon icon = new ImageIcon("instructions.png");
-        icon = new ImageIcon(icon.getImage().getScaledInstance((int) menuSize.getWidth(), (int) (menuSize.getHeight() / 3), Image.SCALE_DEFAULT));
+        ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("instructions.png")));
+        icon = new ImageIcon(icon.getImage()
+                .getScaledInstance((int) menuSize.getWidth(),
+                        (int) (menuSize.getHeight() / 3), Image.SCALE_DEFAULT));
         instructions.setIcon(icon);
 
         menuPanel.add(scoreboard);

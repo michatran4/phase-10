@@ -294,6 +294,10 @@ public class MiddlePile {
         return false;
     }
 
+    public LinkedList<Card> getCards() {
+        return cards;
+    }
+
     /**
      * @return the rule that the pile is using
      */

@@ -37,6 +37,7 @@ public class TurnValidator {
      */
     public boolean validate(Turn turn, Phase phase) {
         if (turn.getDroppedCards().size() == 0) return true;
+        if (turn.getDroppedCards().size() != phase.getTotalNumCards()) return false;
         LinkedList<Card> dropped = turn.getDroppedCards();
         // create a histogram for number sets and runs
         // this histogram should be outside the loop so that cards for rules don't double-dip
@@ -252,7 +253,7 @@ public class TurnValidator {
     }
 
     /**
-     * Validates cards that are hit on to the middle piles.
+     * Validates cards that are hit on to the middle piles. This is for the CPU.
      *
      * @param turn              the turn to validate
      * @param middlePileManager the middle piles to check with

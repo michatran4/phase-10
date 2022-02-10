@@ -127,6 +127,10 @@ public class PlayerManager {
         return playerList.toArray(new String[0]);
     }
 
+    public boolean hasPlayer(String player) {
+        return playerList.contains(player);
+    }
+
     public String toString() {
         return "PlayerManager{" +
                 "phaseMap=" + phaseMap +

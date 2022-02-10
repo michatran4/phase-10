@@ -38,10 +38,9 @@ public class GUI {
     private final HashMap<String, String> components;// dynamic text components of the gui
     private String pile, move;
     private final TurnValidator turnValidator;
-    private MiddlePileManager middlePileManager;
 
     //Basic setup of the frame container, panels, card piles (buttons)
-    public GUI(HashMap<String, String> vars, MiddlePileManager pileManager) {
+    public GUI(HashMap<String, String> vars) {
         components = new HashMap<>(vars);
         playerCards = new LinkedList<>();
         selectedCards = new LinkedList<>();
@@ -56,7 +55,6 @@ public class GUI {
         updateSetsPanel();
         frame.setVisible(true);
         turnValidator = new TurnValidator(false);
-        middlePileManager = pileManager;
     }
 
     // fix text for jlabels and wrapping improperly
@@ -380,6 +378,8 @@ public class GUI {
             discardCard = new CardButton(card);
             centerLeftPanel.add(discardCard);
         }
+        centerLeftPanel.revalidate();
+        centerLeftPanel.repaint();
     }
 
     /**
@@ -394,6 +394,8 @@ public class GUI {
             discardCard = new CardButton(card);
             centerLeftPanel.add(discardCard);
         }
+        centerLeftPanel.revalidate();
+        centerLeftPanel.repaint();
     }
 
     /**
@@ -417,7 +419,7 @@ public class GUI {
      * Adds the player's selected cards as a played set.
      * @param phase the phase to check
      */
-    private void addCompletedPlayerSet(Phase phase) {
+    private void addCompletedPlayerSet(Phase phase, MiddlePileManager middlePileManager) {
         int cWidth = (int) (cardWidth * .4);
         int cHeight = (int) (cardHeight * .4);
         LinkedList<CardButton> temp = new LinkedList<>(selectedCards);
@@ -508,15 +510,15 @@ public class GUI {
     }
 
     // new turn, after card is drawn
-    public void playerTurn(Phase phase, boolean hittable) {
+    public void playerTurn(Phase phase, MiddlePileManager middlePileManager, boolean hittable) {
         move = "";
         toggleCardSelection(); //make cards selectable
         toggleDiscardButton();
         if (hittable) {
-            toggleHitButton();
+            toggleHitButton(middlePileManager);
         }
         else {
-            toggleSetButton(phase);
+            toggleSetButton(phase, middlePileManager);
         }
     }
 
@@ -525,7 +527,7 @@ public class GUI {
     }
 
     // If player still needs to complete sets --> allow player to attempt to create phase set
-    private void toggleSetButton(Phase phase) {
+    private void toggleSetButton(Phase phase, MiddlePileManager middlePileManager) {
         setButton.addActionListener(e -> {
             LinkedList<Card> middle = getSelectedCards();
             if (middle.size() == 0) {
@@ -540,7 +542,7 @@ public class GUI {
             }
             Turn t = new Turn(middle, null, new LinkedList<>());
             if (turnValidator.validate(t, phase)) {
-                addCompletedPlayerSet(phase);
+                addCompletedPlayerSet(phase, middlePileManager);
             }
             else {
                 warn("Invalid phase play.");
@@ -598,7 +600,7 @@ public class GUI {
     /**
      * Toggle from the main game after the player completes a phase.
      */
-    public void toggleHitButton() {
+    public void toggleHitButton(MiddlePileManager middlePileManager) {
         hitButton.addActionListener(e -> {
             if (playerCards.size() - selectedCards.size() < 1) {
                 warn("You must have one remaining card to discard.");

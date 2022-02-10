@@ -29,7 +29,7 @@ public class PhaseTen {
         initPiles();
         drawPile.shuffle();
         initPlayers();
-        gui = new GUI(getVariables(), middlePileManager);
+        gui = new GUI(getVariables());
         initDecks(); // updates GUI
         turnValidator = new TurnValidator(DEBUGGING);
         startGame();
@@ -108,7 +108,7 @@ public class PhaseTen {
     private void updateStatus(String status) {
         gui.updateStatus(status);
         try {
-            Thread.sleep(1);
+            Thread.sleep(1000);
         }
         catch (InterruptedException ignored) {}
     }
@@ -163,9 +163,11 @@ public class PhaseTen {
                     System.out.println("New player: " + player);
                 }
                 if (drawPile.isEmpty()) { // checking if piles are bad
+                    updateStatus("Piles were flipped to be fixed.");
                     drawPile.addAll(discardPile.getPile());
                     discardPile.clear();
-                    gui.setDiscardCard("(discard)");
+                    discardPile.add(drawPile.pop());
+                    gui.setDiscardCard(discardPile.peek());
                 }
                 if (skipped.contains(player)) { // skip the player
                     updateStatus(player + " was skipped.");
@@ -297,7 +299,7 @@ public class PhaseTen {
                         updateStatus("You drew a " + pop.toString() + "\n from the draw pile.");
                     }
                     // get the next turn after drawing
-                    gui.playerTurn(phase, hitting.contains(player));
+                    gui.playerTurn(phase, middlePileManager, hitting.contains(player));
                     while (!gui.getNextMove().equals("discard")) {
                         if (!gui.getNextMove().equals("")) {
                             String nextMove = gui.getNextMove();
@@ -314,7 +316,7 @@ public class PhaseTen {
                                     playerManager.incrementPhase(player);
                                     hitting.add(player);
                                     gui.updatePhases(playerManager.getPhases());
-                                    gui.toggleHitButton();
+                                    gui.toggleHitButton(middlePileManager);
                                     updateStatus("Player 1 has laid down the phase.");
                                 }
                                 else {
